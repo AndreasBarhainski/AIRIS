@@ -1,0 +1,994 @@
+{
+  "6": {
+    "inputs": {
+      "text": [
+        "257",
+        0
+      ],
+      "clip": [
+        "38",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Positive Prompt)"
+    }
+  },
+  "8": {
+    "inputs": {
+      "samples": [
+        "31",
+        0
+      ],
+      "vae": [
+        "50",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "27": {
+    "inputs": {
+      "width": [
+        "342",
+        0
+      ],
+      "height": [
+        "342",
+        1
+      ],
+      "batch_size": 1
+    },
+    "class_type": "EmptySD3LatentImage",
+    "_meta": {
+      "title": "EmptySD3LatentImage"
+    }
+  },
+  "31": {
+    "inputs": {
+      "seed": 1003237936418273,
+      "steps": 20,
+      "cfg": 1,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1,
+      "model": [
+        "37",
+        0
+      ],
+      "positive": [
+        "211",
+        0
+      ],
+      "negative": [
+        "242",
+        1
+      ],
+      "latent_image": [
+        "232",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "33": {
+    "inputs": {
+      "text": "",
+      "clip": [
+        "38",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Negative Prompt)"
+    }
+  },
+  "37": {
+    "inputs": {
+      "unet_name": "flux1-dev.sft",
+      "weight_dtype": "fp8_e4m3fn"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "Load Diffusion Model"
+    }
+  },
+  "38": {
+    "inputs": {
+      "clip_name1": "t5xxl_fp16.safetensors",
+      "clip_name2": "ViT-L-14-GmP-ft-TE-only-HF-format.safetensors",
+      "type": "flux",
+      "device": "default"
+    },
+    "class_type": "DualCLIPLoader",
+    "_meta": {
+      "title": "DualCLIPLoader"
+    }
+  },
+  "41": {
+    "inputs": {
+      "guidance": 3.5,
+      "conditioning": [
+        "6",
+        0
+      ]
+    },
+    "class_type": "FluxGuidance",
+    "_meta": {
+      "title": "FluxGuidance"
+    }
+  },
+  "42": {
+    "inputs": {
+      "style_model_name": "FLUX 1 Redux Dev.safetensors"
+    },
+    "class_type": "StyleModelLoader",
+    "_meta": {
+      "title": "Load Style Model"
+    }
+  },
+  "43": {
+    "inputs": {
+      "clip_name": "sigclip_vision_patch14_384.safetensors"
+    },
+    "class_type": "CLIPVisionLoader",
+    "_meta": {
+      "title": "Load CLIP Vision"
+    }
+  },
+  "50": {
+    "inputs": {
+      "vae_name": "ae.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "Load VAE"
+    }
+  },
+  "154": {
+    "inputs": {
+      "filename_prefix": "ComfyUI",
+      "images": [
+        "345",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image"
+    }
+  },
+  "160": {
+    "inputs": {
+      "strength": 0.5000000000000001,
+      "start_percent": 0,
+      "end_percent": 0.4,
+      "positive": [
+        "41",
+        0
+      ],
+      "negative": [
+        "33",
+        0
+      ],
+      "control_net": [
+        "161",
+        0
+      ],
+      "image": [
+        "208",
+        0
+      ],
+      "vae": [
+        "50",
+        0
+      ]
+    },
+    "class_type": "ControlNetApplyAdvanced",
+    "_meta": {
+      "title": "Apply ControlNet"
+    }
+  },
+  "161": {
+    "inputs": {
+      "control_net_name": "FLUX.1/Shakker-Labs-ControlNet-Union-Pro/diffusion_pytorch_model.safetensors"
+    },
+    "class_type": "ControlNetLoader",
+    "_meta": {
+      "title": "Load ControlNet Model"
+    }
+  },
+  "208": {
+    "inputs": {
+      "low_threshold": 100,
+      "high_threshold": 200,
+      "resolution": 512,
+      "image": [
+        "325",
+        0
+      ]
+    },
+    "class_type": "CannyEdgePreprocessor",
+    "_meta": {
+      "title": "Canny Edge"
+    }
+  },
+  "209": {
+    "inputs": {
+      "images": [
+        "208",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Preview Image"
+    }
+  },
+  "210": {
+    "inputs": {
+      "crop": "none",
+      "sharpen": 0,
+      "patch_res": 2,
+      "style_strength": 0.20000000000000004,
+      "prompt_strength": 1.0000000000000002,
+      "blend_mode": "lerp",
+      "noise_level": 0,
+      "conditioning": [
+        "242",
+        0
+      ],
+      "style_model": [
+        "42",
+        0
+      ],
+      "clip_vision": [
+        "43",
+        0
+      ],
+      "image": [
+        "305",
+        0
+      ],
+      "mask": [
+        "312",
+        0
+      ]
+    },
+    "class_type": "YC_LG_Redux",
+    "_meta": {
+      "title": "YC_LG_Redux_Advance"
+    }
+  },
+  "211": {
+    "inputs": {
+      "crop": "none",
+      "sharpen": 0,
+      "patch_res": 8,
+      "style_strength": 0.5,
+      "prompt_strength": 1.0000000000000002,
+      "blend_mode": "lerp",
+      "noise_level": 0,
+      "conditioning": [
+        "210",
+        0
+      ],
+      "style_model": [
+        "42",
+        0
+      ],
+      "clip_vision": [
+        "43",
+        0
+      ],
+      "image": [
+        "300",
+        0
+      ],
+      "mask": [
+        "312",
+        0
+      ]
+    },
+    "class_type": "YC_LG_Redux",
+    "_meta": {
+      "title": "YC_LG_Redux_Advance"
+    }
+  },
+  "219": {
+    "inputs": {
+      "samples": [
+        "232",
+        0
+      ],
+      "vae": [
+        "50",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "220": {
+    "inputs": {
+      "images": [
+        "219",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Preview Image"
+    }
+  },
+  "230": {
+    "inputs": {
+      "number_of_inputs": 11,
+      "delimiter": "newline",
+      "text_1": [
+        "252",
+        0
+      ],
+      "text_2": [
+        "249",
+        0
+      ],
+      "text_4": [
+        "245",
+        0
+      ],
+      "text_5": [
+        "294",
+        0
+      ],
+      "text_7": [
+        "243",
+        0
+      ],
+      "text_8": [
+        "291",
+        0
+      ],
+      "text_10": [
+        "262",
+        0
+      ],
+      "text_11": [
+        "296",
+        0
+      ]
+    },
+    "class_type": "Bjornulf_CombineTexts",
+    "_meta": {
+      "title": "🔗 Combine (Texts)"
+    }
+  },
+  "232": {
+    "inputs": {
+      "blend_factor": 0.8500000000000002,
+      "samples1": [
+        "27",
+        0
+      ],
+      "samples2": [
+        "267",
+        0
+      ]
+    },
+    "class_type": "LatentBlend",
+    "_meta": {
+      "title": "Latent Blend"
+    }
+  },
+  "234": {
+    "inputs": {
+      "text": "You are a specialized prompt engineer for the Flux Model by Black Forrest. Your main task is to create prompts for generating simple, photorealistic backgrounds. These backgrounds should be minimalist and clear, devoid of complex details or distractions, always containing a gradient in the background into which symbols are embedded or placed in front. Focus on providing more detailed descriptions of the image content.\n\nYour role involves detailed understanding and application of the following requirements:\n\n### Important Requirements:\n1. **Photorealism:** The images must closely resemble real photos from a profession photographer in a table-top studio setting., ensuring all elements are in focus and clear, free from fog or artifacts. \n2. **Theme-based Customization:** Customize prompts based on given themes like \"Easter\" or \"Valentine's Day,\" using learned symbols such as Easter eggs for Easter or snow for winter.\n3. ** Sperate the content of \"The Item\" and the \"Topic\" if the Item is placed on the left the content should be on the right. The assets should not be infront if the item. \n\n\nYou get this information to write the prompt:\n\n\"The Item\" is the Product that will be shown in the image. 1/4 of the prompt weight.\n\"The Background:  Is the color sphere. 1/4 of the prompt weight.\n\"The Topic\": The tompic is the most important one! You need to create additional assets based on the topic, to create a creative image with the product. Put the assets into the prompt. 2/4 of the prompt weight.\nDescribe the topic as the most important thing in this image. \n\"The Layout\" will provide information where the items is placed. the decorative elements from the Topic should be placed on OTHER regions of the image. \n\nThese are the infos you should create the prompt with:\n\n\n\n"
+    },
+    "class_type": "Text Multiline",
+    "_meta": {
+      "title": "LLM System Prompt"
+    }
+  },
+  "240": {
+    "inputs": {
+      "ckpt_name": "depth_anything_vitl14.pth",
+      "resolution": 512,
+      "image": [
+        "325",
+        0
+      ]
+    },
+    "class_type": "DepthAnythingPreprocessor",
+    "_meta": {
+      "title": "Depth Anything"
+    }
+  },
+  "241": {
+    "inputs": {
+      "images": [
+        "240",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Preview Image"
+    }
+  },
+  "242": {
+    "inputs": {
+      "strength": 0.15,
+      "start_percent": 0,
+      "end_percent": 0.25,
+      "positive": [
+        "160",
+        0
+      ],
+      "negative": [
+        "160",
+        1
+      ],
+      "control_net": [
+        "161",
+        0
+      ],
+      "image": [
+        "240",
+        0
+      ],
+      "vae": [
+        "50",
+        0
+      ]
+    },
+    "class_type": "ControlNetApplyAdvanced",
+    "_meta": {
+      "title": "Apply ControlNet"
+    }
+  },
+  "243": {
+    "inputs": {
+      "Text": "The Item:"
+    },
+    "class_type": "DF_Text",
+    "_meta": {
+      "title": "Title (Item)"
+    }
+  },
+  "245": {
+    "inputs": {
+      "Text": "The Backgound"
+    },
+    "class_type": "DF_Text",
+    "_meta": {
+      "title": "Title (Background)"
+    }
+  },
+  "247": {
+    "inputs": {
+      "text_0": "The Topic:\nWinter\nThe Backgound\nThe background is a gradient that transitions from a deep blue at the top left corner to a lighter blue and then to a bright white at the top right corner. There is a subtle transition between the blue and red hues, creating a smooth and seamless gradient effect.\nThe Item:\nThe image shows a gaming console and a controller. The gaming console is a sleek, modern device with a white and black design. It has a vertical shape with a slim profile. The controller is positioned in front of the console and has a similar design with a white and black color scheme. It features a D-pad, buttons, and joysticks typical of a standard controller.\nThe Layout:\nThe image features a white and black gaming console and a white and black game controller placed on a gradient blue background. The console is positioned on the right side, while the controller is on the left. The gradient background transitions from dark blue to light blue, creating a visually appealing contrast.",
+      "text": [
+        "230",
+        0
+      ]
+    },
+    "class_type": "ShowText|pysssss",
+    "_meta": {
+      "title": "Show Text 🐍"
+    }
+  },
+  "249": {
+    "inputs": {
+      "Text": "Winter"
+    },
+    "class_type": "DF_Text",
+    "_meta": {
+      "title": "The Topic"
+    }
+  },
+  "252": {
+    "inputs": {
+      "Text": "The Topic:"
+    },
+    "class_type": "DF_Text",
+    "_meta": {
+      "title": "Title (Topic)"
+    }
+  },
+  "255": {
+    "inputs": {
+      "Text": "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"
+    },
+    "class_type": "DF_Text",
+    "_meta": {
+      "title": "Text"
+    }
+  },
+  "257": {
+    "inputs": {
+      "text_0": "Create a photorealistic image that captures the essence of winter, featuring a sophisticated gaming console and controller against a captivating gradient backdrop.\n\n**The Item:** On the right side of the image, place the sleek, modern gaming console with its elegant white and black design. Its vertical shape and slim profile are highlighted by a distinctive blue power indicator line. To the left, in front of the console, position the matching controller, which mirrors the console's color scheme. The controller features a D-pad, buttons, and joysticks, emphasizing its design for seamless gaming experiences.\n\n**The Background:** The backdrop features a gradient transitioning from a deep blue at the top left corner to a lighter blue and then to a bright white at the top right corner. This gradient provides a serene and seamless transition between colors, reminiscent of a crisp winter sky, with a subtle hint of red hues adding depth.\n\n**The Topic:** Enhance the winter theme by incorporating elements on the left side of the image, where the controller is situated. Include photorealistic snowflakes gently descending, adding a touch of winter magic to the scene. To further evoke the winter ambiance, place small decorative pinecones and sprigs of evergreen branches around the controller, creating a natural and tranquil winter setting.\n\nThis composition elegantly balances the modern design of the gaming console and controller with the serene beauty of winter, set against a gradient background that enhances the overall visual appeal. The main subjects stand out prominently, crafting a captivating yet minimalist image.",
+      "text": [
+        "287",
+        0
+      ]
+    },
+    "class_type": "ShowText|pysssss",
+    "_meta": {
+      "title": "Show Text 🐍"
+    }
+  },
+  "262": {
+    "inputs": {
+      "Text": "The Layout:"
+    },
+    "class_type": "DF_Text",
+    "_meta": {
+      "title": "Item (not used)"
+    }
+  },
+  "267": {
+    "inputs": {
+      "pixels": [
+        "300",
+        0
+      ],
+      "vae": [
+        "50",
+        0
+      ]
+    },
+    "class_type": "VAEEncode",
+    "_meta": {
+      "title": "VAE Encode"
+    }
+  },
+  "282": {
+    "inputs": {
+      "image": "Gradient_04c_RGB.jpg"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Background"
+    }
+  },
+  "283": {
+    "inputs": {
+      "image": "PS5_CFI2000_PR_01_sRGB (2).png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Product"
+    }
+  },
+  "284": {
+    "inputs": {
+      "image": "Swisscom_Horizontal_RGB_Colour_White.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Logo"
+    }
+  },
+  "287": {
+    "inputs": {
+      "prompt": [
+        "247",
+        0
+      ],
+      "system_content": [
+        "234",
+        0
+      ],
+      "model": "gpt-4o",
+      "seed": 292229270335325,
+      "context_size": 1,
+      "api_url": "openai",
+      "api_key": [
+        "255",
+        0
+      ]
+    },
+    "class_type": "ChatGPTOpenAI",
+    "_meta": {
+      "title": "ChatGPT & Local LLM ♾️Mixlab"
+    }
+  },
+  "291": {
+    "inputs": {
+      "question": "Describe the Item",
+      "seed": 133456034316721,
+      "temperature": 0.1,
+      "top_p": 0.95,
+      "max_new_tokens": 512,
+      "model": [
+        "292",
+        0
+      ],
+      "processor": [
+        "292",
+        1
+      ],
+      "image": [
+        "305",
+        0
+      ]
+    },
+    "class_type": "JanusImageUnderstanding",
+    "_meta": {
+      "title": "Janus Image Understanding"
+    }
+  },
+  "292": {
+    "inputs": {
+      "model_name": "deepseek-ai/Janus-Pro-1B"
+    },
+    "class_type": "JanusModelLoader",
+    "_meta": {
+      "title": "Janus Model Loader"
+    }
+  },
+  "294": {
+    "inputs": {
+      "question": "Describe the background",
+      "seed": 759514761242304,
+      "temperature": 0.1,
+      "top_p": 0.95,
+      "max_new_tokens": 512,
+      "model": [
+        "292",
+        0
+      ],
+      "processor": [
+        "292",
+        1
+      ],
+      "image": [
+        "300",
+        0
+      ]
+    },
+    "class_type": "JanusImageUnderstanding",
+    "_meta": {
+      "title": "Janus Image Understanding"
+    }
+  },
+  "296": {
+    "inputs": {
+      "question": "Describe layout and composition. Nothing else... just were the item is placed in the image. make it short.",
+      "seed": 658488568743865,
+      "temperature": 0.1,
+      "top_p": 0.95,
+      "max_new_tokens": 512,
+      "model": [
+        "292",
+        0
+      ],
+      "processor": [
+        "292",
+        1
+      ],
+      "image": [
+        "314",
+        0
+      ]
+    },
+    "class_type": "JanusImageUnderstanding",
+    "_meta": {
+      "title": "Janus Image Understanding"
+    }
+  },
+  "298": {
+    "inputs": {
+      "image": [
+        "282",
+        0
+      ]
+    },
+    "class_type": "CM_NearestSDXLResolution",
+    "_meta": {
+      "title": "NearestSDXLResolution"
+    }
+  },
+  "300": {
+    "inputs": {
+      "width": [
+        "298",
+        0
+      ],
+      "height": [
+        "298",
+        1
+      ],
+      "upscale_method": "nearest-exact",
+      "keep_proportion": "stretch",
+      "pad_color": "0, 0, 0",
+      "crop_position": "center",
+      "divisible_by": 2,
+      "image": [
+        "282",
+        0
+      ]
+    },
+    "class_type": "ImageResizeKJv2",
+    "_meta": {
+      "title": "Resize Image v2"
+    }
+  },
+  "304": {
+    "inputs": {
+      "image": [
+        "283",
+        0
+      ]
+    },
+    "class_type": "CM_NearestSDXLResolution",
+    "_meta": {
+      "title": "NearestSDXLResolution"
+    }
+  },
+  "305": {
+    "inputs": {
+      "width": [
+        "304",
+        0
+      ],
+      "height": [
+        "304",
+        1
+      ],
+      "upscale_method": "nearest-exact",
+      "keep_proportion": "stretch",
+      "pad_color": "0, 0, 0",
+      "crop_position": "center",
+      "divisible_by": 2,
+      "image": [
+        "283",
+        0
+      ]
+    },
+    "class_type": "ImageResizeKJv2",
+    "_meta": {
+      "title": "Resize Image v2"
+    }
+  },
+  "312": {
+    "inputs": {
+      "width": [
+        "304",
+        0
+      ],
+      "height": [
+        "304",
+        1
+      ],
+      "keep_proportions": false,
+      "upscale_method": "nearest-exact",
+      "crop": "disabled",
+      "mask": [
+        "283",
+        1
+      ]
+    },
+    "class_type": "ResizeMask",
+    "_meta": {
+      "title": "Resize Mask"
+    }
+  },
+  "314": {
+    "inputs": {
+      "invert_mask": true,
+      "blend_mode": "normal",
+      "opacity": 100,
+      "x_percent": [
+        "328",
+        0
+      ],
+      "y_percent": [
+        "329",
+        0
+      ],
+      "mirror": "None",
+      "scale": [
+        "330",
+        0
+      ],
+      "aspect_ratio": 1,
+      "rotate": 0,
+      "transform_method": "lanczos",
+      "anti_aliasing": 0,
+      "background_image": [
+        "300",
+        0
+      ],
+      "layer_image": [
+        "305",
+        0
+      ],
+      "layer_mask": [
+        "312",
+        0
+      ]
+    },
+    "class_type": "LayerUtility: ImageBlendAdvance",
+    "_meta": {
+      "title": "LayerUtility: ImageBlendAdvance"
+    }
+  },
+  "323": {
+    "inputs": {
+      "panel_width": [
+        "298",
+        0
+      ],
+      "panel_height": [
+        "298",
+        1
+      ],
+      "fill_color": "custom",
+      "fill_color_hex": "#000000"
+    },
+    "class_type": "CR Color Panel",
+    "_meta": {
+      "title": "🌁 CR Color Panel"
+    }
+  },
+  "325": {
+    "inputs": {
+      "invert_mask": true,
+      "blend_mode": "normal",
+      "opacity": 100,
+      "x_percent": [
+        "328",
+        0
+      ],
+      "y_percent": [
+        "329",
+        0
+      ],
+      "mirror": "None",
+      "scale": [
+        "330",
+        0
+      ],
+      "aspect_ratio": 1,
+      "rotate": 0,
+      "transform_method": "lanczos",
+      "anti_aliasing": 0,
+      "background_image": [
+        "323",
+        0
+      ],
+      "layer_image": [
+        "305",
+        0
+      ],
+      "layer_mask": [
+        "312",
+        0
+      ]
+    },
+    "class_type": "LayerUtility: ImageBlendAdvance",
+    "_meta": {
+      "title": "LayerUtility: ImageBlendAdvance"
+    }
+  },
+  "328": {
+    "inputs": {
+      "value": 75.00000000000001
+    },
+    "class_type": "FloatConstant",
+    "_meta": {
+      "title": "Object_X"
+    }
+  },
+  "329": {
+    "inputs": {
+      "value": 50.000000000000014
+    },
+    "class_type": "FloatConstant",
+    "_meta": {
+      "title": "Object_Y"
+    }
+  },
+  "330": {
+    "inputs": {
+      "value": 0.8000000000000002
+    },
+    "class_type": "FloatConstant",
+    "_meta": {
+      "title": "Object_Scale"
+    }
+  },
+  "334": {
+    "inputs": {
+      "invert_mask": true,
+      "blend_mode": "normal",
+      "opacity": 100,
+      "x_percent": [
+        "328",
+        0
+      ],
+      "y_percent": [
+        "329",
+        0
+      ],
+      "mirror": "None",
+      "scale": [
+        "330",
+        0
+      ],
+      "aspect_ratio": 1,
+      "rotate": 0,
+      "transform_method": "lanczos",
+      "anti_aliasing": 0,
+      "background_image": [
+        "8",
+        0
+      ],
+      "layer_image": [
+        "305",
+        0
+      ],
+      "layer_mask": [
+        "312",
+        0
+      ]
+    },
+    "class_type": "LayerUtility: ImageBlendAdvance",
+    "_meta": {
+      "title": "LayerUtility: ImageBlendAdvance"
+    }
+  },
+  "342": {
+    "inputs": {
+      "image": [
+        "300",
+        0
+      ]
+    },
+    "class_type": "GetImageSize+",
+    "_meta": {
+      "title": "🔧 Get Image Size"
+    }
+  },
+  "345": {
+    "inputs": {
+      "select": [
+        "348",
+        0
+      ],
+      "sel_mode": false,
+      "input1": [
+        "8",
+        0
+      ],
+      "input2": [
+        "334",
+        0
+      ]
+    },
+    "class_type": "ImpactSwitch",
+    "_meta": {
+      "title": "Switch (Any)"
+    }
+  },
+  "348": {
+    "inputs": {
+      "Number": "2"
+    },
+    "class_type": "Int",
+    "_meta": {
+      "title": "Original Image Overlay"
+    }
+  }
+}

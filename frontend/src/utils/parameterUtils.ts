@@ -68,7 +68,7 @@ export const organizeParameters = (
 
     params.forEach((param) => {
       const value = node.inputs[param];
-      if (value === undefined || value === "") return;
+      if (value === undefined) return;
 
       const { type } = getParameterTypeInfo(param, value, node.class_type);
 

@@ -257,7 +257,8 @@ configDb.serialize(() => {
       description TEXT,
       parameterOverrides TEXT,
       exposedParameters TEXT,
-      inputModes TEXT
+      inputModes TEXT,
+      parameterOrder TEXT
     )
   `);
 });
@@ -288,12 +289,13 @@ app.post("/api/configurations", (req, res) => {
     parameterOverrides,
     exposedParameters,
     inputModes,
+    parameterOrder,
   } = req.body;
   if (!workflowId || !name) {
     return res.status(400).json({ error: "workflowId and name are required" });
   }
   configDb.run(
-    `INSERT INTO configurations (workflowId, name, description, parameterOverrides, exposedParameters, inputModes) VALUES (?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO configurations (workflowId, name, description, parameterOverrides, exposedParameters, inputModes, parameterOrder) VALUES (?, ?, ?, ?, ?, ?, ?)`,
     [
       workflowId,
       name,
@@ -301,6 +303,7 @@ app.post("/api/configurations", (req, res) => {
       JSON.stringify(parameterOverrides || {}),
       JSON.stringify(exposedParameters || []),
       JSON.stringify(inputModes || {}),
+      JSON.stringify(parameterOrder || []),
     ],
     function (err) {
       if (err) {
@@ -331,6 +334,9 @@ app.get("/api/configurations/:workflowId", (req, res) => {
           ? JSON.parse(row.exposedParameters)
           : [],
         inputModes: row.inputModes ? JSON.parse(row.inputModes) : {},
+        parameterOrder: row.parameterOrder
+          ? JSON.parse(row.parameterOrder)
+          : [],
       }));
       res.json(configs);
     }
@@ -346,21 +352,26 @@ app.put("/api/configurations/:id", (req, res) => {
     parameterOverrides,
     exposedParameters,
     inputModes,
+    parameterOrder,
   } = req.body;
+  console.log("[PUT] Update config", { id, parameterOrder }); // DEBUG
   configDb.run(
-    `UPDATE configurations SET name = ?, description = ?, parameterOverrides = ?, exposedParameters = ?, inputModes = ? WHERE id = ?`,
+    `UPDATE configurations SET name = ?, description = ?, parameterOverrides = ?, exposedParameters = ?, inputModes = ?, parameterOrder = ? WHERE id = ?`,
     [
       name,
       description || "",
       JSON.stringify(parameterOverrides || {}),
       JSON.stringify(exposedParameters || []),
       JSON.stringify(inputModes || {}),
+      JSON.stringify(parameterOrder || []),
       id,
     ],
     function (err) {
       if (err) {
+        console.error("[PUT] Update error:", err); // DEBUG
         return res.status(500).json({ error: err.message });
       }
+      console.log("[PUT] Update result:", this); // DEBUG
       res.json({ updated: this.changes });
     }
   );
@@ -393,6 +404,7 @@ app.get("/api/configurations", (req, res) => {
         ? JSON.parse(row.exposedParameters)
         : [],
       inputModes: row.inputModes ? JSON.parse(row.inputModes) : {},
+      parameterOrder: row.parameterOrder ? JSON.parse(row.parameterOrder) : [],
     }));
     res.json(configs);
   });

@@ -21,10 +21,10 @@ interface WorkflowSummary {
   filename: string;
 }
 
-type Mode = "idle" | "creating" | "loading" | "editing";
+type Mode = "loading" | "creating" | "editing";
 
 const EditorPage: React.FC = () => {
-  const [mode, setMode] = useState<Mode>("idle");
+  const [mode, setMode] = useState<Mode>("loading");
   const [allWorkflows, setAllWorkflows] = useState<WorkflowSummary[]>([]);
   const [workflowNodes, setWorkflowNodes] = useState<any[]>([]);
   const [selectedParams, setSelectedParams] = useState<{
@@ -54,6 +54,7 @@ const EditorPage: React.FC = () => {
     [nodeId: string]: { [param: string]: StringInputMode };
   }>({});
   const [seedModes, setSeedModes] = useState<Record<string, string>>({});
+  const [parameterOrder, setParameterOrder] = useState<string[]>([]);
 
   // Fetch all workflows on mount
   useEffect(() => {
@@ -99,16 +100,12 @@ const EditorPage: React.FC = () => {
     window.scrollTo(0, 0);
   };
 
-  const handleStartLoad = () => {
-    setMode("loading");
-    window.scrollTo(0, 0);
-  };
-
   const handleCancel = () => {
-    setMode("idle");
+    setMode("loading");
     setEditingConfigId(null);
     setNewConfig({ name: "", description: "", workflowId: null });
     setSelectedParams({});
+    setSuccessMsg(null);
     window.scrollTo(0, 0);
   };
 
@@ -122,6 +119,28 @@ const EditorPage: React.FC = () => {
     });
     setSelectedParams(config.exposedParameters || {});
     setParamValues(config.parameterOverrides || {});
+
+    // MIGRATION: convert parameterOrder to flat array if needed
+    let flatOrder: string[] = [];
+    if (Array.isArray(config.parameterOrder)) {
+      flatOrder = config.parameterOrder;
+    } else if (
+      config.parameterOrder &&
+      typeof config.parameterOrder === "object"
+    ) {
+      flatOrder = Object.entries(config.parameterOrder).flatMap(
+        ([nodeId, params]) => params.map((param) => `${nodeId}.${param}`)
+      );
+    }
+    // If still empty, build from selectedParams/exposedParameters
+    if (flatOrder.length === 0 && config.exposedParameters) {
+      flatOrder = Object.entries(config.exposedParameters).flatMap(
+        ([nodeId, params]) => params.map((param) => `${nodeId}.${param}`)
+      );
+    }
+    console.log("[LOAD] parameterOrder from config:", config.parameterOrder);
+    console.log("[LOAD] flatOrder used in state:", flatOrder);
+    setParameterOrder(flatOrder);
 
     // Validate/cast inputModes to correct type
     const loadedInputModes: {
@@ -146,7 +165,61 @@ const EditorPage: React.FC = () => {
     window.scrollTo(0, 0);
   };
 
-  // Save or update config
+  // When selecting/deselecting parameters, update global order
+  const handleParameterSelect = (
+    nodeId: string,
+    param: string,
+    checked: boolean
+  ) => {
+    const key = `${nodeId}.${param}`;
+    setSelectedParams((prev) => {
+      const current = prev[nodeId] || [];
+      return {
+        ...prev,
+        [nodeId]: checked
+          ? [...current, param]
+          : current.filter((p) => p !== param),
+      };
+    });
+    setParamValues((prev) => {
+      return {
+        ...prev,
+        [nodeId]: {
+          ...prev[nodeId],
+          ...(checked
+            ? {
+                [param]: workflowNodes.find((n) => n.id === nodeId)?.inputs[
+                  param
+                ],
+              }
+            : {}),
+        },
+      };
+    });
+    setParameterOrder((prev) => {
+      if (checked) {
+        if (!prev.includes(key)) return [...prev, key];
+        return prev;
+      } else {
+        return prev.filter((k) => k !== key);
+      }
+    });
+  };
+
+  // Move parameter up/down in global order
+  const moveParam = (key: string, direction: -1 | 1) => {
+    setParameterOrder((prev) => {
+      const idx = prev.indexOf(key);
+      if (idx === -1) return prev;
+      const swapIdx = idx + direction;
+      if (swapIdx < 0 || swapIdx >= prev.length) return prev;
+      const newOrder = [...prev];
+      [newOrder[idx], newOrder[swapIdx]] = [newOrder[swapIdx], newOrder[idx]];
+      return newOrder;
+    });
+  };
+
+  // Save or update config: persist parameterOrder as a flat array
   const handleSaveConfig = async () => {
     if (!newConfig.workflowId || !newConfig.name) return;
 
@@ -165,6 +238,7 @@ const EditorPage: React.FC = () => {
       });
     });
 
+    console.log("[SAVE] parameterOrder to be saved:", parameterOrder);
     const configPayload = {
       workflowId: newConfig.workflowId,
       name: newConfig.name,
@@ -172,12 +246,15 @@ const EditorPage: React.FC = () => {
       parameterOverrides: paramValues,
       exposedParameters: selectedParams,
       inputModes: filteredInputModes,
+      parameterOrder,
     };
 
     if (editingConfigId) {
       await updateConfiguration(editingConfigId, configPayload);
+      setSuccessMsg("Configuration updated successfully!");
     } else {
       await createConfiguration(configPayload);
+      setSuccessMsg("Configuration created successfully!");
     }
 
     setEditingConfigId(null);
@@ -185,7 +262,7 @@ const EditorPage: React.FC = () => {
     setSelectedParams({});
     setParamValues({});
     setInputModes({});
-    setMode("idle");
+    setMode("loading");
     loadConfigurations("");
 
     // Scroll to top after saving
@@ -195,7 +272,7 @@ const EditorPage: React.FC = () => {
   const handleDeleteConfig = async (id: number) => {
     await deleteConfiguration(id);
     loadConfigurations("");
-    setMode("idle");
+    setSuccessMsg("Configuration deleted successfully!");
     window.scrollTo(0, 0);
   };
 
@@ -214,32 +291,7 @@ const EditorPage: React.FC = () => {
     setSelectedParams((prev) => ({ ...prev, [nodeId]: [] }));
   };
 
-  // Render the idle mode content
-  const renderIdleMode = () => (
-    <div className="editor-actions">
-      <Button
-        label="Create New Configuration"
-        icon="pi pi-plus"
-        className="editor-button"
-        onClick={handleStartCreate}
-      />
-      <Button
-        label="Load Existing Configuration"
-        icon="pi pi-folder-open"
-        className="editor-button"
-        onClick={handleStartLoad}
-      />
-      {successMsg && (
-        <Message
-          severity="success"
-          text={successMsg}
-          className="editor-success-message"
-        />
-      )}
-    </div>
-  );
-
-  // Render the configuration form
+  // Render the configuration form (split-screen)
   const renderConfigForm = () => (
     <div className="editor-form">
       <Button
@@ -247,11 +299,9 @@ const EditorPage: React.FC = () => {
         className="p-button-text editor-back-button"
         onClick={handleCancel}
       />
-
       <h5 className="editor-form-title">
-        {mode === "editing" ? "Edit Configuration" : "Add New Configuration"}
+        {mode === "editing" ? "Edit Configuration" : "Create New Configuration"}
       </h5>
-
       {/* Configuration Details */}
       <div className="editor-form-group">
         <div className="editor-section-title">Configuration Details</div>
@@ -279,7 +329,6 @@ const EditorPage: React.FC = () => {
           <div className="editor-form-error">Name is required</div>
         )}
       </div>
-
       {/* Workflow Selection */}
       <div className="editor-form-group">
         <div className="editor-section-title">Workflow Selection</div>
@@ -308,163 +357,197 @@ const EditorPage: React.FC = () => {
           />
         )}
       </div>
-
-      {/* Exposed Parameters */}
-      <div className="editor-section">
-        <div className="editor-section-title">
-          Exposed Parameters (per node)
-        </div>
-        {workflowNodes.length > 0 ? (
-          <div className="editor-nodes">
-            {workflowNodes.map((node) => (
-              <div key={node.id} className="editor-node">
-                <div className="editor-node-title">
-                  {node.title} (ID: {node.id})
-                </div>
-                <div className="editor-node-actions">
-                  <Button
-                    label="Select All"
-                    className="p-button-text p-button-sm"
-                    onClick={() => handleSelectAll(node.id)}
-                  />
-                  <Button
-                    label="Deselect All"
-                    className="p-button-text p-button-sm"
-                    onClick={() => handleDeselectAll(node.id)}
-                  />
-                </div>
-                <ul className="editor-param-list">
-                  {Object.entries(node.inputs)
-                    .filter(
-                      ([param, value]) =>
-                        typeof value === "string" ||
-                        typeof value === "number" ||
-                        typeof value === "boolean"
-                    )
-                    .map(([param, value]) => {
-                      // Determine parameter type
-                      let paramType: ParameterType | "seed" | "image" =
-                        param === "seed"
-                          ? "seed"
-                          : param === "image" || param.includes("image")
-                          ? "image"
-                          : typeof value === "number"
-                          ? "number"
-                          : typeof value === "boolean"
-                          ? "boolean"
-                          : "string";
-                      const isSelected =
-                        selectedParams[node.id]?.includes(param) || false;
-                      const inputMode =
-                        inputModes[node.id]?.[param] || "single";
-                      // For seed, manage seedMode state
-                      let seedMode =
-                        paramType === "seed"
-                          ? seedModes[`${node.id}.${param}`] || "fixed"
-                          : undefined;
-                      return (
-                        <li key={param} className="editor-param-item">
-                          <div className="editor-param-header">
-                            <label className="editor-param-label">
-                              <input
-                                type="checkbox"
-                                checked={isSelected}
-                                onChange={(e) => {
-                                  setSelectedParams((prev) => {
-                                    const current = prev[node.id] || [];
-                                    return {
-                                      ...prev,
-                                      [node.id]: e.target.checked
-                                        ? [...current, param]
-                                        : current.filter((p) => p !== param),
-                                    };
-                                  });
-                                  setParamValues((prev) => {
-                                    return {
-                                      ...prev,
-                                      [node.id]: {
-                                        ...prev[node.id],
-                                        ...(e.target.checked
-                                          ? { [param]: value }
-                                          : {}),
-                                      },
-                                    };
-                                  });
-                                }}
-                              />
-                              {param}
-                            </label>
-                            {isSelected && paramType === "string" && (
-                              <div className="editor-param-type">
-                                <span className="editor-param-type-label">
-                                  Input Type:
-                                </span>
-                                <Dropdown
-                                  value={inputMode}
-                                  options={[
-                                    { label: "Single Line", value: "single" },
-                                    { label: "Multi Line", value: "multi" },
-                                  ]}
-                                  onChange={(e) => {
-                                    setInputModes((prev) => {
-                                      const nodeInputs = prev[node.id] || {};
-                                      return {
-                                        ...prev,
-                                        [node.id]: {
-                                          ...nodeInputs,
-                                          [param]: e.value,
+      {/* Split Screen Section */}
+      <div className="editor-split-container">
+        {/* Left: Node/Parameter Selection */}
+        <div className="editor-split-left">
+          <div className="editor-section-title">Nodes & Parameters</div>
+          {workflowNodes.length > 0 ? (
+            <div className="editor-nodes">
+              {workflowNodes
+                .map((node) => {
+                  // Only keep parameters that are selectable
+                  const selectableParams = Object.entries(node.inputs).filter(
+                    ([param, value]) =>
+                      typeof value === "string" ||
+                      typeof value === "number" ||
+                      typeof value === "boolean"
+                  );
+                  if (selectableParams.length === 0) return null;
+                  return (
+                    <div key={node.id} className="editor-node">
+                      <div className="editor-node-title">
+                        {node.title} (ID: {node.id})
+                      </div>
+                      <ul className="editor-param-list">
+                        {selectableParams.map(([param, value]) => {
+                          let paramType: ParameterType | "seed" | "image" =
+                            param === "seed"
+                              ? "seed"
+                              : param === "image" || param.includes("image")
+                              ? "image"
+                              : typeof value === "number"
+                              ? "number"
+                              : typeof value === "boolean"
+                              ? "boolean"
+                              : "string";
+                          const isSelected =
+                            selectedParams[node.id]?.includes(param) || false;
+                          const inputMode =
+                            inputModes[node.id]?.[param] || "single";
+                          let seedMode =
+                            paramType === "seed"
+                              ? seedModes[`${node.id}.${param}`] || "fixed"
+                              : undefined;
+                          return (
+                            <li key={param} className="editor-param-item">
+                              <div className="editor-param-header">
+                                <label className="editor-param-label">
+                                  <input
+                                    type="checkbox"
+                                    checked={isSelected}
+                                    onChange={(e) => {
+                                      handleParameterSelect(
+                                        node.id,
+                                        param,
+                                        e.target.checked
+                                      );
+                                    }}
+                                  />
+                                  {param}
+                                </label>
+                                {isSelected && paramType === "string" && (
+                                  <div className="editor-param-type">
+                                    <span className="editor-param-type-label">
+                                      Input Type:
+                                    </span>
+                                    <Dropdown
+                                      value={inputMode}
+                                      options={[
+                                        {
+                                          label: "Single Line",
+                                          value: "single",
                                         },
-                                      };
-                                    });
-                                  }}
-                                />
+                                        { label: "Multi Line", value: "multi" },
+                                      ]}
+                                      onChange={(e) => {
+                                        setInputModes((prev) => {
+                                          const nodeInputs =
+                                            prev[node.id] || {};
+                                          return {
+                                            ...prev,
+                                            [node.id]: {
+                                              ...nodeInputs,
+                                              [param]: e.value,
+                                            },
+                                          };
+                                        });
+                                      }}
+                                    />
+                                  </div>
+                                )}
                               </div>
-                            )}
-                          </div>
-                          {isSelected && (
-                            <div className="editor-param-input">
-                              <ParameterInputs
-                                parameters={[
-                                  {
-                                    name: param,
-                                    type: paramType,
-                                    value:
-                                      paramValues[node.id]?.[param] ?? value,
-                                    onChange: (v) =>
-                                      setParamValues((prev) => ({
-                                        ...prev,
-                                        [node.id]: {
-                                          ...prev[node.id],
-                                          [param]: v,
-                                        },
-                                      })),
-                                    inputMode,
-                                    seedMode,
-                                    onSeedModeChange: (mode) =>
-                                      setSeedModes((prev) => ({
-                                        ...prev,
-                                        [`${node.id}.${param}`]: mode,
-                                      })),
-                                  },
-                                ]}
-                              />
-                            </div>
-                          )}
-                        </li>
-                      );
-                    })}
-                </ul>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <Message
-            severity="info"
-            text="Select a workflow to expose parameters."
-          />
-        )}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  );
+                })
+                .filter(Boolean)}
+            </div>
+          ) : (
+            <Message
+              severity="info"
+              text="Select a workflow to expose parameters."
+            />
+          )}
+        </div>
+        {/* Right: Selected Parameter Inputs */}
+        <div className="editor-split-right">
+          <div className="editor-section-title">Selected Parameter Inputs</div>
+          {parameterOrder.length === 0 ? (
+            <div className="editor-no-params">No parameters selected.</div>
+          ) : (
+            <ul className="editor-selected-param-list">
+              {parameterOrder.map((key, idx) => {
+                const [nodeId, ...paramParts] = key.split(".");
+                const param = paramParts.join(".");
+                const node = workflowNodes.find((n) => n.id === nodeId);
+                if (!node || !selectedParams[nodeId]?.includes(param))
+                  return null;
+                const value = node.inputs[param];
+                let paramType: ParameterType | "seed" | "image" =
+                  param === "seed"
+                    ? "seed"
+                    : param === "image" || param.includes("image")
+                    ? "image"
+                    : typeof value === "number"
+                    ? "number"
+                    : typeof value === "boolean"
+                    ? "boolean"
+                    : "string";
+                const inputMode = inputModes[nodeId]?.[param] || "single";
+                let seedMode =
+                  paramType === "seed"
+                    ? seedModes[`${nodeId}.${param}`] || "fixed"
+                    : undefined;
+                return (
+                  <li key={key} className="editor-selected-param-item">
+                    <div
+                      style={{ display: "flex", alignItems: "center", gap: 8 }}
+                    >
+                      <span className="editor-selected-param-label">
+                        {node.title} ({node.id}) — {param}
+                      </span>
+                      <Button
+                        icon="pi pi-arrow-up"
+                        className="p-button-text p-button-sm"
+                        onClick={() => moveParam(key, -1)}
+                        disabled={idx === 0}
+                        type="button"
+                        tabIndex={0}
+                      />
+                      <Button
+                        icon="pi pi-arrow-down"
+                        className="p-button-text p-button-sm"
+                        onClick={() => moveParam(key, 1)}
+                        disabled={idx === parameterOrder.length - 1}
+                        type="button"
+                        tabIndex={0}
+                      />
+                    </div>
+                    <ParameterInputs
+                      parameters={[
+                        {
+                          name: param,
+                          type: paramType,
+                          value: paramValues[nodeId]?.[param] ?? value,
+                          onChange: (v) =>
+                            setParamValues((prev) => ({
+                              ...prev,
+                              [nodeId]: {
+                                ...prev[nodeId],
+                                [param]: v,
+                              },
+                            })),
+                          inputMode,
+                          seedMode,
+                          onSeedModeChange: (mode) =>
+                            setSeedModes((prev) => ({
+                              ...prev,
+                              [`${nodeId}.${param}`]: mode,
+                            })),
+                        },
+                      ]}
+                    />
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
       </div>
-
       <div className="editor-actions-footer">
         <Button
           label={
@@ -472,11 +555,6 @@ const EditorPage: React.FC = () => {
           }
           onClick={async () => {
             await handleSaveConfig();
-            setSuccessMsg(
-              mode === "editing"
-                ? "Configuration updated successfully!"
-                : "Configuration saved successfully!"
-            );
           }}
           disabled={!newConfig.name || !newConfig.workflowId}
           className="editor-save-button"
@@ -493,7 +571,23 @@ const EditorPage: React.FC = () => {
   // Render the loading mode content
   const renderLoadingMode = () => (
     <div className="editor-loading">
-      <h5 className="editor-loading-title">Load Existing Configuration</h5>
+      <div className="editor-loading-header">
+        <h5 className="editor-loading-title">Configurations</h5>
+        <Button
+          label="Create New Configuration"
+          icon="pi pi-plus"
+          className="p-button-primary editor-create-button"
+          onClick={handleStartCreate}
+        />
+      </div>
+
+      {successMsg && (
+        <Message
+          severity="success"
+          text={successMsg}
+          className="editor-success-message"
+        />
+      )}
 
       {configError && (
         <Message severity="error" text={configError} className="editor-error" />
@@ -501,6 +595,10 @@ const EditorPage: React.FC = () => {
 
       {loading ? (
         <p className="editor-loading-message">Loading configurations...</p>
+      ) : configurations.length === 0 ? (
+        <div className="editor-empty-state">
+          <p>No configurations found. Create a new one to get started.</p>
+        </div>
       ) : (
         <ul className="editor-config-list">
           {configurations.map((config) => (
@@ -537,24 +635,16 @@ const EditorPage: React.FC = () => {
           ))}
         </ul>
       )}
-
-      <div className="editor-loading-footer">
-        <Button
-          label="Back"
-          className="p-button-text editor-back-button"
-          onClick={handleCancel}
-        />
-      </div>
     </div>
   );
 
   return (
     <div className="editor-page-container">
       <div className="editor-page">
-        <Card title="Configurations" className="editor-card">
-          {mode === "idle" && renderIdleMode()}
-          {(mode === "creating" || mode === "editing") && renderConfigForm()}
-          {mode === "loading" && renderLoadingMode()}
+        <Card className="editor-card">
+          {mode === "creating" || mode === "editing"
+            ? renderConfigForm()
+            : renderLoadingMode()}
         </Card>
       </div>
     </div>

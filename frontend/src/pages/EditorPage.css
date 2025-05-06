@@ -1,45 +1,44 @@
 /* Main container */
 .editor-page-container {
-  width: 100%;
-  min-height: 100%;
+  width: 100vw;
+  min-height: 100vh;
   padding: 0;
+  margin: 0;
   overflow-y: auto;
+  background: var(--surface-ground, #f7fbfa);
 }
 
 .editor-page {
-  max-width: 700px;
-  width: 100%;
-  margin: 40px auto 80px;
-  padding: 0 20px;
+  width: 100vw;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
 }
 
 .editor-card {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
-  border-radius: 8px !important;
+  width: 100vw;
+  min-height: 100vh;
+  box-shadow: none !important;
+  border-radius: 0 !important;
   overflow: visible !important;
+  background: transparent !important;
+  padding: 0;
 }
 
-/* Idle Mode Styles */
-.editor-actions {
-  text-align: center;
-  margin: 40px 0;
-}
-
-.editor-button {
-  width: 240px;
-}
-
-.editor-button:not(:last-child) {
-  margin-right: 16px;
-}
-
+/* Success Message */
 .editor-success-message {
-  margin-top: 24px;
+  margin: 16px 0;
 }
 
 /* Form Mode Styles */
 .editor-form {
-  padding-bottom: 20px;
+  width: 100vw;
+  min-height: 100vh;
+  padding: 32px 48px 32px 48px;
+  box-sizing: border-box;
 }
 
 .editor-back-button {
@@ -175,10 +174,21 @@
   padding-bottom: 20px;
 }
 
+.editor-loading-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
 .editor-loading-title {
-  margin-bottom: 16px;
+  margin: 0;
   font-size: 1.25rem;
   font-weight: 600;
+}
+
+.editor-create-button {
+  min-width: 200px;
 }
 
 .editor-error {
@@ -188,6 +198,15 @@
 .editor-loading-message {
   margin: 20px 0;
   color: var(--text-color-secondary);
+}
+
+.editor-empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-color-secondary);
+  background: var(--surface-ground);
+  border-radius: 8px;
+  margin: 20px 0;
 }
 
 .editor-config-list {
@@ -223,10 +242,6 @@
   color: var(--text-color-secondary);
 }
 
-.editor-loading-footer {
-  margin-top: 24px;
-}
-
 /* Footer actions */
 .editor-actions-footer {
   margin-top: 24px;
@@ -249,6 +264,16 @@
     padding: 0 16px;
   }
 
+  .editor-loading-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .editor-create-button {
+    width: 100%;
+  }
+
   .editor-form-row {
     flex-direction: column;
     gap: 8px;
@@ -258,15 +283,6 @@
   .editor-form-field.description,
   .editor-workflow-dropdown {
     width: 100%;
-  }
-
-  .editor-button {
-    width: 100%;
-    margin-bottom: 8px;
-  }
-
-  .editor-button:not(:last-child) {
-    margin-right: 0;
   }
 
   .editor-param-header {
@@ -281,5 +297,88 @@
   .editor-save-button,
   .editor-cancel-button {
     width: 100%;
+  }
+}
+
+/* Split Screen Layout */
+.editor-split-container {
+  display: flex;
+  flex-direction: row;
+  gap: 32px;
+  width: 100%;
+  min-height: 400px;
+}
+
+.editor-split-left {
+  flex: 0 0 38%;
+  max-width: 38%;
+  min-width: 220px;
+  overflow-y: auto;
+  border-right: 1px solid var(--surface-border);
+  padding-right: 16px;
+}
+
+.editor-split-right {
+  flex: 1 1 62%;
+  max-width: 62%;
+  min-width: 220px;
+  overflow-y: auto;
+  padding-left: 16px;
+}
+
+.editor-no-params {
+  color: #888;
+  padding: 24px 0;
+  text-align: center;
+}
+
+/* Selected Parameter Inputs (right pane) */
+.editor-selected-node-group {
+  margin-bottom: 32px;
+}
+
+.editor-selected-node-title {
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: var(--text-color);
+}
+
+.editor-selected-param-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.editor-selected-param-item {
+  margin-bottom: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.editor-selected-param-label {
+  font-weight: 400;
+  margin-bottom: 2px;
+}
+
+/* Responsive: stack vertically on mobile */
+@media screen and (max-width: 900px) {
+  .editor-split-container {
+    flex-direction: column;
+    gap: 0;
+  }
+  .editor-split-left,
+  .editor-split-right {
+    max-width: 100%;
+    min-width: 0;
+    padding: 0;
+    border: none;
+  }
+  .editor-split-left {
+    margin-bottom: 32px;
+  }
+
+  .editor-form {
+    padding: 16px 4vw 16px 4vw;
   }
 }

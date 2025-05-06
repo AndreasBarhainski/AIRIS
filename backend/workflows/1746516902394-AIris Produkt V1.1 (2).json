@@ -1,0 +1,954 @@
+{
+  "6": {
+    "inputs": {
+      "text": [
+        "257",
+        0
+      ],
+      "clip": [
+        "38",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Positive Prompt)"
+    }
+  },
+  "8": {
+    "inputs": {
+      "samples": [
+        "31",
+        0
+      ],
+      "vae": [
+        "50",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "27": {
+    "inputs": {
+      "width": [
+        "163",
+        0
+      ],
+      "height": [
+        "163",
+        1
+      ],
+      "batch_size": 1
+    },
+    "class_type": "EmptySD3LatentImage",
+    "_meta": {
+      "title": "EmptySD3LatentImage"
+    }
+  },
+  "31": {
+    "inputs": {
+      "seed": 1112164791016796,
+      "steps": 20,
+      "cfg": 1,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 0.9500000000000001,
+      "model": [
+        "37",
+        0
+      ],
+      "positive": [
+        "211",
+        0
+      ],
+      "negative": [
+        "242",
+        1
+      ],
+      "latent_image": [
+        "232",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "33": {
+    "inputs": {
+      "text": "",
+      "clip": [
+        "38",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Negative Prompt)"
+    }
+  },
+  "37": {
+    "inputs": {
+      "unet_name": "flux1-dev.sft",
+      "weight_dtype": "fp8_e4m3fn"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "Load Diffusion Model"
+    }
+  },
+  "38": {
+    "inputs": {
+      "clip_name1": "t5xxl_fp16.safetensors",
+      "clip_name2": "ViT-L-14-GmP-ft-TE-only-HF-format.safetensors",
+      "type": "flux",
+      "device": "default"
+    },
+    "class_type": "DualCLIPLoader",
+    "_meta": {
+      "title": "DualCLIPLoader"
+    }
+  },
+  "41": {
+    "inputs": {
+      "guidance": 3.5,
+      "conditioning": [
+        "6",
+        0
+      ]
+    },
+    "class_type": "FluxGuidance",
+    "_meta": {
+      "title": "FluxGuidance"
+    }
+  },
+  "42": {
+    "inputs": {
+      "style_model_name": "FLUX 1 Redux Dev.safetensors"
+    },
+    "class_type": "StyleModelLoader",
+    "_meta": {
+      "title": "Load Style Model"
+    }
+  },
+  "43": {
+    "inputs": {
+      "clip_name": "sigclip_vision_patch14_384.safetensors"
+    },
+    "class_type": "CLIPVisionLoader",
+    "_meta": {
+      "title": "Load CLIP Vision"
+    }
+  },
+  "50": {
+    "inputs": {
+      "vae_name": "ae.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "Load VAE"
+    }
+  },
+  "154": {
+    "inputs": {
+      "filename_prefix": "ComfyUI",
+      "images": [
+        "8",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image"
+    }
+  },
+  "156": {
+    "inputs": {
+      "image": "Gradient RGB.jpg"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  },
+  "160": {
+    "inputs": {
+      "strength": 0.5000000000000001,
+      "start_percent": 0,
+      "end_percent": 0.4,
+      "positive": [
+        "41",
+        0
+      ],
+      "negative": [
+        "33",
+        0
+      ],
+      "control_net": [
+        "161",
+        0
+      ],
+      "image": [
+        "208",
+        0
+      ],
+      "vae": [
+        "50",
+        0
+      ]
+    },
+    "class_type": "ControlNetApplyAdvanced",
+    "_meta": {
+      "title": "Apply ControlNet"
+    }
+  },
+  "161": {
+    "inputs": {
+      "control_net_name": "FLUX.1/Shakker-Labs-ControlNet-Union-Pro/diffusion_pytorch_model.safetensors"
+    },
+    "class_type": "ControlNetLoader",
+    "_meta": {
+      "title": "Load ControlNet Model"
+    }
+  },
+  "162": {
+    "inputs": {
+      "image": "ComfyUI_temp_mrokx_00001_.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  },
+  "163": {
+    "inputs": {
+      "image": [
+        "174",
+        0
+      ]
+    },
+    "class_type": "CM_NearestSDXLResolution",
+    "_meta": {
+      "title": "NearestSDXLResolution"
+    }
+  },
+  "164": {
+    "inputs": {
+      "width": 512,
+      "height": 512,
+      "upscale_method": "bilinear",
+      "keep_proportion": false,
+      "divisible_by": 2,
+      "crop": 0,
+      "image": [
+        "156",
+        0
+      ]
+    },
+    "class_type": "ImageResizeKJ",
+    "_meta": {
+      "title": "Resize Image (deprecated)"
+    }
+  },
+  "165": {
+    "inputs": {
+      "images": [
+        "164",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Preview Image"
+    }
+  },
+  "166": {
+    "inputs": {
+      "image": "ComfyUI Session 1 (52).png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  },
+  "167": {
+    "inputs": {
+      "method": "intensity",
+      "image": [
+        "168",
+        0
+      ]
+    },
+    "class_type": "Image To Mask",
+    "_meta": {
+      "title": "Image To Mask"
+    }
+  },
+  "168": {
+    "inputs": {
+      "width": 512,
+      "height": 512,
+      "upscale_method": "nearest-exact",
+      "keep_proportion": false,
+      "divisible_by": 2,
+      "crop": 0,
+      "image": [
+        "166",
+        0
+      ]
+    },
+    "class_type": "ImageResizeKJ",
+    "_meta": {
+      "title": "Resize Image (deprecated)"
+    }
+  },
+  "173": {
+    "inputs": {
+      "image": [
+        "156",
+        0
+      ]
+    },
+    "class_type": "CM_NearestSDXLResolution",
+    "_meta": {
+      "title": "NearestSDXLResolution"
+    }
+  },
+  "174": {
+    "inputs": {
+      "width": [
+        "173",
+        0
+      ],
+      "height": [
+        "173",
+        1
+      ],
+      "upscale_method": "nearest-exact",
+      "keep_proportion": false,
+      "divisible_by": 2,
+      "crop": 0,
+      "image": [
+        "156",
+        0
+      ],
+      "height_input": [
+        "173",
+        1
+      ]
+    },
+    "class_type": "ImageResizeKJ",
+    "_meta": {
+      "title": "Resize Image (deprecated)"
+    }
+  },
+  "175": {
+    "inputs": {
+      "noise_strenght": 1,
+      "noise_size": 1,
+      "color_noise": 1,
+      "mask_strength": 1,
+      "mask_scale_diff": 0,
+      "mask_contrast": 1,
+      "saturation": 1,
+      "contrast": 1,
+      "blur": 0,
+      "image": [
+        "174",
+        0
+      ],
+      "noise_mask": [
+        "213",
+        0
+      ]
+    },
+    "class_type": "NoiseFromImage+",
+    "_meta": {
+      "title": "🔧 Noise From Image"
+    }
+  },
+  "176": {
+    "inputs": {
+      "images": [
+        "175",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Preview Image"
+    }
+  },
+  "203": {
+    "inputs": {
+      "image": "PS5_CFI2000_PR_01_sRGB (2).png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  },
+  "207": {
+    "inputs": {
+      "mask": [
+        "212",
+        0
+      ]
+    },
+    "class_type": "MaskPreview+",
+    "_meta": {
+      "title": "🔧 Mask Preview"
+    }
+  },
+  "208": {
+    "inputs": {
+      "low_threshold": 100,
+      "high_threshold": 200,
+      "resolution": 512,
+      "image": [
+        "162",
+        0
+      ]
+    },
+    "class_type": "CannyEdgePreprocessor",
+    "_meta": {
+      "title": "Canny Edge"
+    }
+  },
+  "209": {
+    "inputs": {
+      "images": [
+        "208",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Preview Image"
+    }
+  },
+  "210": {
+    "inputs": {
+      "crop": "none",
+      "sharpen": 0,
+      "patch_res": 4,
+      "style_strength": 0.5,
+      "prompt_strength": 1.0000000000000002,
+      "blend_mode": "lerp",
+      "noise_level": 0,
+      "conditioning": [
+        "242",
+        0
+      ],
+      "style_model": [
+        "42",
+        0
+      ],
+      "clip_vision": [
+        "43",
+        0
+      ],
+      "image": [
+        "203",
+        0
+      ],
+      "mask": [
+        "212",
+        0
+      ]
+    },
+    "class_type": "YC_LG_Redux",
+    "_meta": {
+      "title": "YC_LG_Redux_Advance"
+    }
+  },
+  "211": {
+    "inputs": {
+      "crop": "none",
+      "sharpen": 0,
+      "patch_res": 8,
+      "style_strength": 0.5,
+      "prompt_strength": 1.0000000000000002,
+      "blend_mode": "lerp",
+      "noise_level": 0,
+      "conditioning": [
+        "210",
+        0
+      ],
+      "style_model": [
+        "42",
+        0
+      ],
+      "clip_vision": [
+        "43",
+        0
+      ],
+      "image": [
+        "164",
+        0
+      ],
+      "mask": [
+        "167",
+        0
+      ]
+    },
+    "class_type": "YC_LG_Redux",
+    "_meta": {
+      "title": "YC_LG_Redux_Advance"
+    }
+  },
+  "212": {
+    "inputs": {
+      "mask": [
+        "203",
+        1
+      ]
+    },
+    "class_type": "InvertMask",
+    "_meta": {
+      "title": "InvertMask"
+    }
+  },
+  "213": {
+    "inputs": {
+      "image": [
+        "166",
+        0
+      ]
+    },
+    "class_type": "ImageInvert",
+    "_meta": {
+      "title": "Invert Image"
+    }
+  },
+  "219": {
+    "inputs": {
+      "samples": [
+        "232",
+        0
+      ],
+      "vae": [
+        "50",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "220": {
+    "inputs": {
+      "images": [
+        "219",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Preview Image"
+    }
+  },
+  "222": {
+    "inputs": {
+      "text_0": "The image shows a blue and pink gradient background with a gradient effect, creating a unique and eye-catching wallpaper.",
+      "text": [
+        "225",
+        2
+      ]
+    },
+    "class_type": "ShowText|pysssss",
+    "_meta": {
+      "title": "Show Text 🐍"
+    }
+  },
+  "225": {
+    "inputs": {
+      "text_input": "",
+      "task": "detailed_caption",
+      "fill_mask": true,
+      "keep_model_loaded": false,
+      "max_new_tokens": 1024,
+      "num_beams": 3,
+      "do_sample": true,
+      "output_mask_select": "",
+      "seed": 530628946983198,
+      "image": [
+        "156",
+        0
+      ],
+      "florence2_model": [
+        "227",
+        0
+      ]
+    },
+    "class_type": "Florence2Run",
+    "_meta": {
+      "title": "Florence2Run"
+    }
+  },
+  "227": {
+    "inputs": {
+      "model": "Florence-2-base",
+      "precision": "fp16",
+      "attention": "sdpa"
+    },
+    "class_type": "Florence2ModelLoader",
+    "_meta": {
+      "title": "Florence2ModelLoader"
+    }
+  },
+  "228": {
+    "inputs": {
+      "text_input": "",
+      "task": "caption",
+      "fill_mask": true,
+      "keep_model_loaded": false,
+      "max_new_tokens": 1024,
+      "num_beams": 3,
+      "do_sample": true,
+      "output_mask_select": "",
+      "seed": 176963901697181,
+      "image": [
+        "203",
+        0
+      ],
+      "florence2_model": [
+        "227",
+        0
+      ]
+    },
+    "class_type": "Florence2Run",
+    "_meta": {
+      "title": "Florence2Run"
+    }
+  },
+  "229": {
+    "inputs": {
+      "text_0": "A white playstation 4 console next to a white controller.",
+      "text": [
+        "228",
+        2
+      ]
+    },
+    "class_type": "ShowText|pysssss",
+    "_meta": {
+      "title": "Show Text 🐍"
+    }
+  },
+  "230": {
+    "inputs": {
+      "number_of_inputs": 9,
+      "delimiter": "newline",
+      "text_1": [
+        "252",
+        0
+      ],
+      "text_2": [
+        "249",
+        0
+      ],
+      "text_4": [
+        "245",
+        0
+      ],
+      "text_5": [
+        "222",
+        0
+      ],
+      "text_6": [
+        "243",
+        0
+      ],
+      "text_7": [
+        "229",
+        0
+      ]
+    },
+    "class_type": "Bjornulf_CombineTexts",
+    "_meta": {
+      "title": "🔗 Combine (Texts)"
+    }
+  },
+  "232": {
+    "inputs": {
+      "blend_factor": 0.85,
+      "samples1": [
+        "27",
+        0
+      ],
+      "samples2": [
+        "267",
+        0
+      ]
+    },
+    "class_type": "LatentBlend",
+    "_meta": {
+      "title": "Latent Blend"
+    }
+  },
+  "234": {
+    "inputs": {
+      "text": "You are a specialized prompt engineer for the Flux Model by Black Forrest. Your main task is to create prompts for generating simple, photorealistic backgrounds. These backgrounds should be minimalist and clear, devoid of complex details or distractions, always containing a gradient in the background into which symbols are embedded or placed in front. Focus on providing more detailed descriptions of the image content.\n\nYour role involves detailed understanding and application of the following requirements:\n\n### Important Requirements:\n1. **Photorealism:** The images must closely resemble real photos, ensuring all elements are in focus and clear, free from fog or artifacts.\n2. **Theme-based Customization:** Customize prompts based on given themes like \"Easter\" or \"Valentine's Day,\" using learned symbols such as Easter eggs for Easter or snow for winter.\n3. ** Sperate the content of \"The Item\" and the \"Topic\" if the Item is placed on the left the content should be on the right. The assets should not be infront if the item. \n\n\nYou get this information to write the prompt:\n\n\"The Item\" is the Product that will be shown in the image. 1/4 of the prompt weight.\n\"The Background:  Is the color sphere. 1/4 of the prompt weight.\n\"The Topic\": The tompic is the most important one! You need to create additional assets based on the topic, to create a creative image with the product. Put the assets into the prompt. 2/4 of the prompt weight.\nDescribe the topic as the most important thing in this image. \n\nThese are the infos you should create the prompt with:\n\n\n\n"
+    },
+    "class_type": "Text Multiline",
+    "_meta": {
+      "title": "LLM System Prompt"
+    }
+  },
+  "240": {
+    "inputs": {
+      "ckpt_name": "depth_anything_vitl14.pth",
+      "resolution": 512,
+      "image": [
+        "162",
+        0
+      ]
+    },
+    "class_type": "DepthAnythingPreprocessor",
+    "_meta": {
+      "title": "Depth Anything"
+    }
+  },
+  "241": {
+    "inputs": {
+      "images": [
+        "240",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Preview Image"
+    }
+  },
+  "242": {
+    "inputs": {
+      "strength": 0.15,
+      "start_percent": 0,
+      "end_percent": 0.25,
+      "positive": [
+        "160",
+        0
+      ],
+      "negative": [
+        "160",
+        1
+      ],
+      "control_net": [
+        "161",
+        0
+      ],
+      "image": [
+        "240",
+        0
+      ],
+      "vae": [
+        "50",
+        0
+      ]
+    },
+    "class_type": "ControlNetApplyAdvanced",
+    "_meta": {
+      "title": "Apply ControlNet"
+    }
+  },
+  "243": {
+    "inputs": {
+      "Text": "The Item:"
+    },
+    "class_type": "DF_Text",
+    "_meta": {
+      "title": "Title (Item)"
+    }
+  },
+  "245": {
+    "inputs": {
+      "Text": "The Backgound"
+    },
+    "class_type": "DF_Text",
+    "_meta": {
+      "title": "Title (Background)"
+    }
+  },
+  "247": {
+    "inputs": {
+      "text_0": "The Topic:\nSummer\nThe Backgound\nThe image shows a blue and pink gradient background with a gradient effect, creating a unique and eye-catching wallpaper.\nThe Item:\nA white playstation 4 console next to a white controller.",
+      "text": [
+        "230",
+        0
+      ]
+    },
+    "class_type": "ShowText|pysssss",
+    "_meta": {
+      "title": "Show Text 🐍"
+    }
+  },
+  "249": {
+    "inputs": {
+      "Text": "Summer"
+    },
+    "class_type": "DF_Text",
+    "_meta": {
+      "title": "The Topic"
+    }
+  },
+  "252": {
+    "inputs": {
+      "Text": "The Topic:"
+    },
+    "class_type": "DF_Text",
+    "_meta": {
+      "title": "Title (Topic)"
+    }
+  },
+  "255": {
+    "inputs": {
+      "Text": "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"
+    },
+    "class_type": "DF_Text",
+    "_meta": {
+      "title": "Text"
+    }
+  },
+  "257": {
+    "inputs": {
+      "text_0": "The image showcases a captivating blue and pink gradient background, blending seamlessly to form an eye-catching and unique wallpaper. This gradient adds a sense of depth and vibrancy, setting the perfect stage for the scene.\n\nOn the left side of the image, a pristine white PlayStation 4 console and its matching controller are prominently displayed. The sleek and modern design of the console contrasts beautifully against the vibrant gradient, ensuring its presence is both prominent and harmonious within the composition.\n\nDominating the right side of the image is the essence of summer, brought to life through thematic elements. Bright, golden sun rays stretch across the scene, infusing it with warmth and evoking the inviting embrace of a summer day. Lush palm leaves gently sway, suggesting a gentle tropical breeze. A colorful beach ball rests playfully, conjuring memories of seaside adventures and carefree fun. Nearby, a pair of stylish sunglasses lies casually, embodying the leisurely and relaxed vibe synonymous with summer. These elements collectively create a vivid and immersive representation of the summer theme, making it the focal point of the image.",
+      "text": [
+        "287",
+        0
+      ]
+    },
+    "class_type": "ShowText|pysssss",
+    "_meta": {
+      "title": "Show Text 🐍"
+    }
+  },
+  "259": {
+    "inputs": {
+      "image": "ComfyUI Session 1 (51).png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  },
+  "260": {
+    "inputs": {
+      "text_input": "",
+      "task": "more_detailed_caption",
+      "fill_mask": false,
+      "keep_model_loaded": false,
+      "max_new_tokens": 1024,
+      "num_beams": 5,
+      "do_sample": true,
+      "output_mask_select": "",
+      "seed": 169654222866499,
+      "image": [
+        "259",
+        0
+      ],
+      "florence2_model": [
+        "227",
+        0
+      ]
+    },
+    "class_type": "Florence2Run",
+    "_meta": {
+      "title": "Florence2Run"
+    }
+  },
+  "261": {
+    "inputs": {
+      "text_0": "The image shows a white Xbox One console and a black wireless controller on a blue and red gradient background. The console is on the right side of the image and the controller is in the center. The background is a gradient of blue, red, and pink colors, creating a gradient effect. The image appears to be an advertisement for the console and controller.",
+      "text": [
+        "260",
+        2
+      ]
+    },
+    "class_type": "ShowText|pysssss",
+    "_meta": {
+      "title": "Show Text 🐍"
+    }
+  },
+  "262": {
+    "inputs": {
+      "Text": "A Playstation 5 on the right side of the image"
+    },
+    "class_type": "DF_Text",
+    "_meta": {
+      "title": "Item (not used)"
+    }
+  },
+  "267": {
+    "inputs": {
+      "pixels": [
+        "174",
+        0
+      ],
+      "vae": [
+        "50",
+        0
+      ]
+    },
+    "class_type": "VAEEncode",
+    "_meta": {
+      "title": "VAE Encode"
+    }
+  },
+  "282": {
+    "inputs": {
+      "image": "Gradient_04c_RGB.jpg"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Background"
+    }
+  },
+  "283": {
+    "inputs": {
+      "image": "PS5_CFI2000_PR_01_sRGB (2).png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Product"
+    }
+  },
+  "284": {
+    "inputs": {
+      "image": "Swisscom_Horizontal_RGB_Colour_White.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Logo"
+    }
+  },
+  "287": {
+    "inputs": {
+      "prompt": [
+        "247",
+        0
+      ],
+      "system_content": [
+        "234",
+        0
+      ],
+      "model": "gpt-4o",
+      "seed": 938747182595964,
+      "context_size": 1,
+      "api_url": "openai",
+      "api_key": [
+        "255",
+        0
+      ]
+    },
+    "class_type": "ChatGPTOpenAI",
+    "_meta": {
+      "title": "ChatGPT & Local LLM ♾️Mixlab"
+    }
+  }
+}

@@ -9,6 +9,7 @@ export interface Configuration {
   parameterOverrides: Record<string, any>;
   exposedParameters: { [nodeId: string]: string[] };
   inputModes?: { [nodeId: string]: { [param: string]: StringInputMode } };
+  parameterOrder?: string[] | { [nodeId: string]: string[] };
 }
 
 interface ConfigurationsStore {

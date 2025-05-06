@@ -121,7 +121,39 @@ const GeneratePage: React.FC = () => {
     }
 
     const inputModes = selectedConfig.inputModes || {};
+    const parameterOrder = Array.isArray(selectedConfig.parameterOrder)
+      ? selectedConfig.parameterOrder
+      : [];
     const categories = organizeParameters(workflowNodes, exposedParams);
+
+    // Build a map of all exposed parameters for quick lookup
+    const exposedParamSet = new Set(
+      Object.entries(exposedParams).flatMap(([nodeId, params]) =>
+        (params || []).map((param) => `${nodeId}.${param}`)
+      )
+    );
+
+    // Build a map of parameter info for quick access
+    const paramInfoMap = new Map();
+    Object.values(categories)
+      .flat()
+      .forEach((p) => {
+        paramInfoMap.set(`${p.nodeId}.${p.param}`, p);
+      });
+
+    // Use parameterOrder if present, else fallback to all exposed params
+    const orderedKeys = parameterOrder.length
+      ? parameterOrder.filter((key) => exposedParamSet.has(key))
+      : Array.from(exposedParamSet);
+
+    // Group ordered parameters by node for visual grouping
+    const nodeGroups = new Map();
+    orderedKeys.forEach((key) => {
+      const [nodeId, param] = key.split(".");
+      if (!nodeGroups.has(nodeId)) nodeGroups.set(nodeId, []);
+      const p = paramInfoMap.get(key);
+      if (p) nodeGroups.get(nodeId).push(p);
+    });
 
     const createParameterInput = (
       nodeId: string,
@@ -156,40 +188,34 @@ const GeneratePage: React.FC = () => {
         seedMode,
         onSeedModeChange:
           type === "seed"
-            ? (mode: string) =>
+            ? (mode: string) => {
                 useGeneratePageStore
                   .getState()
-                  .updateParamValue(`${nodeParamKey}_mode`, mode)
+                  .updateParamValue(`${nodeParamKey}_mode`, mode);
+                if (mode === "random") {
+                  useGeneratePageStore
+                    .getState()
+                    .updateParamValue(
+                      nodeParamKey,
+                      Math.floor(Math.random() * 4294967296)
+                    );
+                }
+              }
             : undefined,
         paramKey: nodeParamKey,
       };
     };
-
-    // Group parameters by node
-    const nodeGroups = new Map<string, any[]>();
-    Object.entries(categories).forEach(([_, params]) => {
-      params.forEach((p) => {
-        const node = workflowNodes.find((n) => n.id === p.nodeId);
-        if (node) {
-          if (!nodeGroups.has(p.nodeId)) {
-            nodeGroups.set(p.nodeId, []);
-          }
-          nodeGroups.get(p.nodeId)?.push(p);
-        }
-      });
-    });
 
     return (
       <div className="parameters-list">
         {Array.from(nodeGroups.entries()).map(([nodeId, params]) => {
           const node = workflowNodes.find((n) => n.id === nodeId);
           const nodeTitle = node?.title || node?.class_type || "";
-
           return (
             <div key={nodeId}>
               <ParameterInputs
                 title={nodeTitle}
-                parameters={params.map((p) =>
+                parameters={params.map((p: any) =>
                   createParameterInput(
                     p.nodeId,
                     p.param,
@@ -230,7 +256,7 @@ const GeneratePage: React.FC = () => {
       // 1. Manipulate the workflow JSON
       const manipulatedWorkflow = JSON.parse(JSON.stringify(workflowJson)); // deep clone
       Object.entries(paramValues).forEach(([key, value]) => {
-        if (!value) return; // Skip null or undefined values
+        if (value === undefined) return; // Only skip truly undefined values
         const [nodeId, paramName] = key.split(".");
         if (manipulatedWorkflow[nodeId]?.inputs && !key.endsWith("_mode")) {
           manipulatedWorkflow[nodeId].inputs[paramName] = value;
