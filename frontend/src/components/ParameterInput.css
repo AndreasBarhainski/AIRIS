@@ -1,0 +1,121 @@
+.parameters-section {
+  background: var(--surface-ground);
+  padding: 1rem;
+  border-radius: 6px;
+  width: 100%;
+  position: relative;
+}
+
+.parameters-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  position: relative;
+}
+
+.parameter-item {
+  width: 100%;
+  background: var(--surface-card);
+  border-radius: 4px;
+  padding: 1rem;
+  position: relative;
+}
+
+.parameter-group-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: 1rem;
+}
+
+.parameter-input-container {
+  margin-bottom: 1rem;
+}
+
+.parameter-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.parameter-boolean {
+  display: flex;
+  align-items: center;
+  margin-top: 0.25rem;
+}
+
+.parameter-boolean label {
+  margin-left: 0.5rem;
+  color: #495057;
+}
+
+/* PrimeReact component overrides */
+.parameter-input-container .p-inputtext,
+.parameter-input-container .p-dropdown,
+.parameter-input-container .p-inputnumber,
+.parameter-input-container .p-fileupload {
+  width: 100%;
+  position: relative;
+}
+
+.parameter-input-container .p-inputtextarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* Input containers */
+.parameter-input-wrapper {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  width: 100%;
+}
+
+/* Hover and focus states */
+.parameter-input-container .p-inputtext:hover,
+.parameter-input-container .p-dropdown:hover,
+.parameter-input-container .p-inputnumber:hover {
+  border-color: var(--primary-color);
+}
+
+.parameter-input-container .p-inputtext:focus,
+.parameter-input-container .p-dropdown:focus,
+.parameter-input-container .p-inputnumber:focus {
+  box-shadow: 0 0 0 1px var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+/* Mobile adjustments */
+@media screen and (max-width: 767px) {
+  .parameter-input-wrapper {
+    flex-direction: column;
+  }
+
+  .parameter-item {
+    padding: 0.75rem;
+  }
+}
+
+/* Adjust spacing for image inputs */
+.parameter-input-container .comfy-image-input {
+  margin-bottom: 0;
+}
+
+/* Style adjustments for checkbox */
+.parameter-input-container .p-checkbox {
+  margin-right: 0.5rem;
+}
+
+/* Consistent styling for disabled state */
+.parameter-input-container .p-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Ensure dropdowns and overlays appear above other content */
+.p-dropdown-panel,
+.p-calendar-panel,
+.p-dialog-mask {
+  z-index: 999 !important;
+}

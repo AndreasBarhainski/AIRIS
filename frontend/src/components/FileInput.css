@@ -1,0 +1,171 @@
+.file-input-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 0.5rem;
+}
+
+.file-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+.file-preview {
+  position: relative;
+  width: 100%;
+  max-width: 300px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--surface-border);
+  margin-top: 1rem;
+}
+
+.preview-image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.clear-button {
+  position: absolute !important;
+  top: 8px;
+  right: 8px;
+  width: 2rem !important;
+  height: 2rem !important;
+  padding: 0 !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: none !important;
+}
+
+.clear-button:hover {
+  background: rgba(255, 255, 255, 1) !important;
+}
+
+.clear-button .pi {
+  font-size: 1rem;
+  color: var(--primary-color);
+}
+
+.input-label {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+/* TabView customization */
+.p-tabview-nav {
+  margin-bottom: 1rem;
+}
+
+.p-tabview-panels {
+  padding: 0 !important;
+}
+
+/* Dropdown customization */
+.p-dropdown {
+  width: 100%;
+}
+
+.p-dropdown-filter {
+  width: 100%;
+  padding: 0.5rem;
+}
+
+/* FileUpload customization */
+.p-fileupload-buttonbar {
+  padding: 0 !important;
+}
+
+.p-fileupload-content {
+  padding: 1rem 0 !important;
+}
+
+/* PrimeReact FileUpload customization */
+.file-input-container .p-fileupload-choose {
+  width: 100%;
+}
+
+.file-input-container .p-button {
+  background: var(--primary-color);
+  border: 1px solid var(--primary-color);
+  padding: 0.75rem 1.25rem;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.file-input-container .p-button:hover {
+  background: var(--primary-600);
+  border-color: var(--primary-600);
+}
+
+.file-input-container .p-fileupload-choose.p-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Error message styling */
+.file-input-container .p-message {
+  margin: 0.5rem 0 0;
+  border-radius: 4px;
+}
+
+/* Mobile adjustments */
+@media screen and (max-width: 767px) {
+  .file-input-wrapper {
+    flex-direction: column;
+  }
+
+  .file-preview {
+    max-width: 100%;
+  }
+
+  .clear-button {
+    width: 2.5rem !important;
+    height: 2.5rem !important;
+  }
+
+  .file-input-container .p-tabview .p-tabview-nav li .p-tabview-nav-link {
+    padding: 0.75rem;
+  }
+}
+
+.comfy-images-panel {
+  padding: 1rem 0;
+}
+
+.loading-message {
+  text-align: center;
+  padding: 1rem;
+  color: #666;
+}
+
+.error-message {
+  padding: 1rem;
+}
+
+.error-help {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}
+
+.error-help p {
+  margin: 0 0 0.5rem 0;
+  color: #666;
+}
+
+.error-help ul {
+  margin: 0;
+  padding-left: 1.5rem;
+  color: #666;
+}
+
+.error-help li {
+  margin: 0.25rem 0;
+}
+
+.no-images-message {
+  padding: 1rem;
+}

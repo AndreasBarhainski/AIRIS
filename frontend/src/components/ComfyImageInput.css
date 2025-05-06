@@ -1,0 +1,101 @@
+.comfy-image-input {
+  width: 100%;
+}
+
+.image-preview {
+  position: relative;
+  margin-top: 0.5rem;
+  width: 100%;
+  max-width: 200px;
+}
+
+.image-preview img {
+  width: 100%;
+  height: auto;
+  max-height: 150px;
+  object-fit: contain;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.clear-button {
+  position: absolute !important;
+  top: -0.5rem;
+  right: -0.5rem;
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+}
+
+.clear-button .p-button-icon {
+  font-size: 0.75rem;
+}
+
+.loading-overlay {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+}
+
+.error-message {
+  margin-top: 0.5rem;
+}
+
+/* Override PrimeReact styles for better alignment */
+.p-fileupload-buttonbar {
+  padding: 0 !important;
+}
+
+.p-fileupload-content {
+  display: none !important;
+}
+
+.comfy-image-input .input-label {
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.comfy-image-input .upload-section,
+.comfy-image-input .select-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  min-height: 100px;
+}
+
+.comfy-image-input .p-fileupload {
+  width: 100%;
+}
+
+.comfy-image-input .p-fileupload .p-button {
+  width: 100%;
+}
+
+.comfy-image-input .p-tabview-panels {
+  padding: 1rem 0;
+}
+
+.comfy-image-input .p-dropdown {
+  width: 100%;
+}
+
+.comfy-image-input .p-dropdown-filter {
+  width: 100%;
+}
+
+.comfy-image-input .p-dropdown-items {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.comfy-image-input .p-message {
+  margin: 0;
+  width: 100%;
+}
+
+.comfy-image-input .p-progressspinner {
+  width: 50px;
+  height: 50px;
+}

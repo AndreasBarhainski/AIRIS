@@ -1,0 +1,285 @@
+/* Main container */
+.editor-page-container {
+  width: 100%;
+  min-height: 100%;
+  padding: 0;
+  overflow-y: auto;
+}
+
+.editor-page {
+  max-width: 700px;
+  width: 100%;
+  margin: 40px auto 80px;
+  padding: 0 20px;
+}
+
+.editor-card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+  border-radius: 8px !important;
+  overflow: visible !important;
+}
+
+/* Idle Mode Styles */
+.editor-actions {
+  text-align: center;
+  margin: 40px 0;
+}
+
+.editor-button {
+  width: 240px;
+}
+
+.editor-button:not(:last-child) {
+  margin-right: 16px;
+}
+
+.editor-success-message {
+  margin-top: 24px;
+}
+
+/* Form Mode Styles */
+.editor-form {
+  padding-bottom: 20px;
+}
+
+.editor-back-button {
+  margin-bottom: 16px;
+}
+
+.editor-form-title {
+  margin-bottom: 16px;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.editor-form-group {
+  margin-bottom: 24px;
+}
+
+.editor-form-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.editor-section-title {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text-color);
+}
+
+.editor-form-field {
+  margin-right: 8px;
+}
+
+.editor-form-field.name {
+  width: 200px;
+}
+
+.editor-form-field.description {
+  width: 300px;
+}
+
+.editor-form-error {
+  color: var(--red-600);
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.editor-no-workflows {
+  margin-bottom: 8px;
+  color: #888;
+}
+
+.editor-no-workflows .p-button-text {
+  margin-left: 12px;
+}
+
+.editor-workflow-dropdown {
+  width: 400px;
+}
+
+/* Nodes Styles */
+.editor-section {
+  margin-bottom: 24px;
+}
+
+.editor-nodes {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.editor-node {
+  border: 1px solid var(--surface-border);
+  border-radius: var(--border-radius);
+  padding: 12px;
+  background: var(--surface-section);
+}
+
+.editor-node-title {
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: var(--text-color);
+}
+
+.editor-node-actions {
+  display: flex;
+  margin-bottom: 10px;
+}
+
+.editor-param-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.editor-param-item {
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.editor-param-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.editor-param-label {
+  font-weight: 400;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 150px;
+}
+
+.editor-param-type {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.editor-param-type-label {
+  color: var(--text-color-secondary);
+  font-size: 0.9em;
+}
+
+.editor-param-input {
+  margin-left: 24px;
+}
+
+/* Loading Mode Styles */
+.editor-loading {
+  padding-bottom: 20px;
+}
+
+.editor-loading-title {
+  margin-bottom: 16px;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.editor-error {
+  margin-bottom: 16px;
+}
+
+.editor-loading-message {
+  margin: 20px 0;
+  color: var(--text-color-secondary);
+}
+
+.editor-config-list {
+  list-style: none;
+  padding: 0;
+}
+
+.editor-config-item {
+  margin-bottom: 16px;
+  padding: 12px;
+  border: 1px solid var(--surface-border);
+  border-radius: var(--border-radius);
+  background: var(--surface-ground);
+}
+
+.editor-config-name {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.editor-config-description {
+  margin-bottom: 8px;
+  color: var(--text-color-secondary);
+}
+
+.editor-config-actions {
+  display: flex;
+  margin-bottom: 8px;
+}
+
+.editor-config-meta {
+  font-size: 12px;
+  color: var(--text-color-secondary);
+}
+
+.editor-loading-footer {
+  margin-top: 24px;
+}
+
+/* Footer actions */
+.editor-actions-footer {
+  margin-top: 24px;
+  display: flex;
+  gap: 16px;
+}
+
+.editor-save-button {
+  width: 220px;
+}
+
+.editor-cancel-button {
+  width: 120px;
+}
+
+/* Mobile Adjustments */
+@media screen and (max-width: 768px) {
+  .editor-page {
+    margin: 20px auto 40px;
+    padding: 0 16px;
+  }
+
+  .editor-form-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .editor-form-field.name,
+  .editor-form-field.description,
+  .editor-workflow-dropdown {
+    width: 100%;
+  }
+
+  .editor-button {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+
+  .editor-button:not(:last-child) {
+    margin-right: 0;
+  }
+
+  .editor-param-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .editor-actions-footer {
+    flex-direction: column;
+  }
+
+  .editor-save-button,
+  .editor-cancel-button {
+    width: 100%;
+  }
+}
