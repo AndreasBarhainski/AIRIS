@@ -9,5 +9,9 @@
   },
   "dependencies": {
     "node-fetch": "^2.7.0"
+  },
+  "engines": {
+    "node": "20.x",
+    "npm": "10.x"
   }
 }
