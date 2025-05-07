@@ -1,1 +1,1 @@
-web: cd backend && node index.js 
+web: cd backend && NODE_ENV=production node index.js 

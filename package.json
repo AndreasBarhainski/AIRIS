@@ -1,8 +1,11 @@
 {
+  "name": "airis",
+  "version": "1.0.0",
+  "description": "ComfyUI Workflows Frontend",
   "scripts": {
     "frontend": "cd frontend && npm run dev",
     "backend": "cd backend && node index.js",
-    "heroku-postbuild": "cd frontend && npm install && npm run build && cd ../backend && npm install"
+    "heroku-postbuild": "npm cache clean --force && cd frontend && npm install && npm run build && cd ../backend && npm install"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
@@ -13,5 +16,16 @@
   "engines": {
     "node": "20.x",
     "npm": "10.x"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/username/AIRIS"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/username/AIRIS/issues"
+  },
+  "homepage": "https://github.com/username/AIRIS#readme"
 }

@@ -49,6 +49,40 @@ if (!fs.existsSync(IMAGES_DIR)) {
   fs.mkdirSync(IMAGES_DIR);
 }
 
+// Ensure frontend dist directory exists at startup
+const FRONTEND_DIST = path.join(__dirname, "../frontend/dist");
+if (!fs.existsSync(FRONTEND_DIST)) {
+  fs.mkdirSync(FRONTEND_DIST, { recursive: true });
+  const placeholderHTML = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>AIRIS - ComfyUI Workflows Frontend</title>
+      <style>
+        body { font-family: system-ui, sans-serif; max-width: 800px; margin: 0 auto; padding: 2rem; }
+        h1 { color: #333; }
+        .card { background: #f9f9f9; border: 1px solid #ddd; padding: 1rem; border-radius: 8px; }
+      </style>
+    </head>
+    <body>
+      <h1>AIRIS Backend is Running</h1>
+      <div class="card">
+        <p>The backend API is running successfully. If you're seeing this page:</p>
+        <ul>
+          <li>In development: The frontend dev server should be started separately.</li>
+          <li>In production: The frontend may not have been built properly.</li>
+        </ul>
+      </div>
+    </body>
+    </html>
+  `;
+  fs.writeFileSync(path.join(FRONTEND_DIST, "index.html"), placeholderHTML);
+  console.log("[INFO] Created placeholder frontend files");
+}
+
+// Detect environment
+const isProduction = process.env.NODE_ENV === "production";
+
 // API ROUTES
 app.post("/api/workflows", upload.single("workflow"), (req, res) => {
   if (!req.file) {
@@ -98,7 +132,8 @@ app.post("/api/generate-image", async (req, res) => {
       JSON.stringify(workflow, null, 2)
     );
     console.log("[DEBUG] Sending workflow to ComfyUI /prompt endpoint...");
-    const comfyRes = await fetch(`${comfyApiUrl}/prompt`, {
+    const promptUrl = new URL("/prompt", comfyApiUrl);
+    const comfyRes = await fetch(promptUrl.toString(), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ prompt: workflow }),
@@ -140,7 +175,9 @@ app.get("/api/progress/:prompt_id", async (req, res) => {
       .json({ error: "comfyApiUrl is required as query param" });
   }
   try {
-    const historyRes = await fetch(`${comfyApiUrl}/history/${promptId}`);
+    // Properly construct the history URL
+    const historyURL = new URL(`/history/${promptId}`, comfyApiUrl);
+    const historyRes = await fetch(historyURL.toString());
     const historyText = await historyRes.text();
     let historyData;
     try {
@@ -169,13 +206,15 @@ app.get("/api/progress/:prompt_id", async (req, res) => {
         const output = promptHistory.outputs[nodeId];
         if (output.images && output.images.length > 0) {
           imageInfo = output.images[0];
-          imageUrl = `${comfyApiUrl}/view?filename=${encodeURIComponent(
-            imageInfo.filename
-          )}${
-            imageInfo.subfolder
-              ? `&subfolder=${encodeURIComponent(imageInfo.subfolder)}`
-              : ""
-          }`;
+
+          // Properly construct URL using URL class
+          const imageURL = new URL("/view", comfyApiUrl);
+          imageURL.searchParams.append("filename", imageInfo.filename);
+          if (imageInfo.subfolder) {
+            imageURL.searchParams.append("subfolder", imageInfo.subfolder);
+          }
+
+          imageUrl = imageURL.toString();
           foundImage = true;
           break;
         }
@@ -496,7 +535,8 @@ app.post("/api/comfy/upload", upload.single("image"), async (req, res) => {
 
     // Upload to ComfyUI
     console.log("[DEBUG] Sending image to ComfyUI upload endpoint...");
-    const response = await fetch(`${comfyApiUrl}/upload/image`, {
+    const uploadUrl = new URL("/upload/image", comfyApiUrl);
+    const response = await fetch(uploadUrl.toString(), {
       method: "POST",
       body: formData,
     });
@@ -535,7 +575,8 @@ app.get("/api/comfy/input_images", async (req, res) => {
 
     // First check if ComfyUI is accessible
     try {
-      const historyResponse = await fetch(`${comfyApiUrl}/history`, {
+      const historyUrl = new URL("/history", comfyApiUrl);
+      const historyResponse = await fetch(historyUrl.toString(), {
         timeout: 5000,
       });
       if (!historyResponse.ok) {
@@ -550,7 +591,8 @@ app.get("/api/comfy/input_images", async (req, res) => {
     }
 
     // Get the list of input images using the object_info endpoint
-    const response = await fetch(`${comfyApiUrl}/object_info`, {
+    const objectInfoUrl = new URL("/object_info", comfyApiUrl);
+    const response = await fetch(objectInfoUrl.toString(), {
       timeout: 5000,
     });
 
@@ -639,13 +681,13 @@ app.get("/api/comfy/view", async (req, res) => {
       type
     );
 
+    // Properly construct the URL using the URL class instead of template literals
+    const viewUrl = new URL("/view", comfyApiUrl);
+    viewUrl.searchParams.append("filename", filename);
+    viewUrl.searchParams.append("type", type);
+
     // Forward the request to ComfyUI
-    const response = await fetch(
-      `${comfyApiUrl}/view?filename=${encodeURIComponent(
-        filename
-      )}&type=${type}`,
-      { timeout: 5000 }
-    );
+    const response = await fetch(viewUrl.toString(), { timeout: 5000 });
 
     if (!response.ok) {
       console.error("[ERROR] ComfyUI view failed:", response.statusText);
@@ -672,6 +714,22 @@ app.get("/api/comfy/view", async (req, res) => {
 // FRONTEND ROUTES - MUST BE LAST
 // Serve frontend build files
 app.use(express.static(path.join(__dirname, "../frontend/dist")));
+
+// Log successful requests in production
+if (isProduction) {
+  app.use((req, res, next) => {
+    const start = Date.now();
+    res.on("finish", () => {
+      const duration = Date.now() - start;
+      console.log(
+        `[${new Date().toISOString()}] ${req.method} ${req.originalUrl} ${
+          res.statusCode
+        } ${duration}ms`
+      );
+    });
+    next();
+  });
+}
 
 // Catch-all route for React Router (must be the very last route)
 app.get("*", (req, res) => {
