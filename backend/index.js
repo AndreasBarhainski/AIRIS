@@ -169,7 +169,7 @@ async function startServer() {
   // Serve frontend build (after all API routes)
   app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
-  // For any route not handled by API, serve index.html (for React Router)
+  // Correct catch-all route for React Router (must be last)
   app.get("*", (req, res) => {
     res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
   });
