@@ -165,23 +165,23 @@ async function startServer() {
   app.listen(PORT, () => {
     console.log(`Backend server running on http://localhost:${PORT}`);
   });
-
-  // Serve frontend build (after all API routes)
-  app.use(express.static(path.join(__dirname, "../frontend/dist")));
-
-  // Correct catch-all route for React Router (must be last)
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
-  });
 }
+
+// Serve images statically
+app.use("/images", express.static(IMAGES_DIR));
+
+// Serve frontend build (after all API routes)
+app.use(express.static(path.join(__dirname, "../frontend/dist")));
+
+// Correct catch-all route for React Router (must be last)
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
+});
 
 startServer().catch((err) => {
   console.error("Failed to start server:", err);
   process.exit(1);
 });
-
-// Serve images statically
-app.use("/images", express.static(IMAGES_DIR));
 
 // GET /api/progress/:prompt_id - poll ComfyUI for progress and image info
 app.get("/api/progress/:prompt_id", async (req, res) => {
