@@ -165,6 +165,14 @@ async function startServer() {
   app.listen(PORT, () => {
     console.log(`Backend server running on http://localhost:${PORT}`);
   });
+
+  // Serve frontend build (after all API routes)
+  app.use(express.static(path.join(__dirname, "../frontend/dist")));
+
+  // For any route not handled by API, serve index.html (for React Router)
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
+  });
 }
 
 startServer().catch((err) => {
