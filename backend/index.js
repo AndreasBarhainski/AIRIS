@@ -10,7 +10,7 @@ const FormData = require("form-data");
 const { URL } = require("url");
 
 const app = express();
-const PORT = 4000;
+const PORT = process.env.PORT || 4000;
 const DEFAULT_COMFY_URL = "http://localhost:8188";
 
 // Enable CORS for all origins (for development)
@@ -128,8 +128,8 @@ const pool = new Pool({
       : false,
 });
 
-// Initialize images table
-(async () => {
+async function startServer() {
+  // Create images table
   await pool.query(`
     CREATE TABLE IF NOT EXISTS images (
       id SERIAL PRIMARY KEY,
@@ -140,7 +140,37 @@ const pool = new Pool({
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `);
-})();
+
+  // Create configurations table
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS configurations (
+      id SERIAL PRIMARY KEY,
+      name TEXT,
+      workflow_id TEXT,
+      parameters JSONB,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
+  // Ensure inputModes column exists
+  const result = await pool.query(`
+    SELECT column_name FROM information_schema.columns WHERE table_name = 'configurations' AND column_name = 'inputModes';
+  `);
+  if (result.rows.length === 0) {
+    await pool.query(`
+      ALTER TABLE configurations ADD COLUMN inputModes JSONB;
+    `);
+  }
+
+  app.listen(PORT, () => {
+    console.log(`Backend server running on http://localhost:${PORT}`);
+  });
+}
+
+startServer().catch((err) => {
+  console.error("Failed to start server:", err);
+  process.exit(1);
+});
 
 // Serve images statically
 app.use("/images", express.static(IMAGES_DIR));
@@ -253,31 +283,6 @@ app.get("/api/ping", (req, res) => {
   console.log("[DEBUG] /api/ping called");
   res.json({ ok: true });
 });
-
-// Initialize configurations table
-(async () => {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS configurations (
-      id SERIAL PRIMARY KEY,
-      name TEXT,
-      workflow_id TEXT,
-      parameters JSONB,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-  `);
-})();
-
-// Ensure inputModes column exists
-(async () => {
-  const result = await pool.query(`
-    SELECT column_name FROM information_schema.columns WHERE table_name = 'configurations' AND column_name = 'inputModes';
-  `);
-  if (result.rows.length === 0) {
-    await pool.query(`
-      ALTER TABLE configurations ADD COLUMN inputModes JSONB;
-    `);
-  }
-})();
 
 // POST /api/configurations - create a new configuration
 app.post("/api/configurations", (req, res) => {
@@ -707,8 +712,4 @@ app.get("/api/comfy/view", async (req, res) => {
       details: err.message,
     });
   }
-});
-
-app.listen(PORT, () => {
-  console.log(`Backend server running on http://localhost:${PORT}`);
 });
