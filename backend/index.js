@@ -4,7 +4,7 @@ const cors = require("cors");
 const path = require("path");
 const fetch = require("node-fetch");
 const fs = require("fs");
-const sqlite3 = require("sqlite3").verbose();
+const { Pool } = require("pg");
 const axios = require("axios");
 const FormData = require("form-data");
 const { URL } = require("url");
@@ -12,9 +12,6 @@ const { URL } = require("url");
 const app = express();
 const PORT = 4000;
 const DEFAULT_COMFY_URL = "http://localhost:8188";
-
-const CONFIG_DB_PATH = path.join(__dirname, "configurations.db");
-const configDb = new sqlite3.Database(CONFIG_DB_PATH);
 
 // Enable CORS for all origins (for development)
 app.use(cors());
@@ -122,19 +119,28 @@ if (!fs.existsSync(IMAGES_DIR)) {
   fs.mkdirSync(IMAGES_DIR);
 }
 
+// Setup PostgreSQL connection
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl:
+    process.env.NODE_ENV === "production"
+      ? { rejectUnauthorized: false }
+      : false,
+});
+
 // Initialize images table
-configDb.serialize(() => {
-  configDb.run(`
+(async () => {
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS images (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       filename TEXT NOT NULL,
       prompt_id TEXT,
       workflow_id TEXT,
       config_id TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
   `);
-});
+})();
 
 // Serve images statically
 app.use("/images", express.static(IMAGES_DIR));
@@ -213,8 +219,9 @@ app.get("/api/progress/:prompt_id", async (req, res) => {
             writer.on("error", reject);
           });
           // Insert metadata into DB
-          configDb.run(
-            `INSERT INTO images (filename, prompt_id, workflow_id, config_id, created_at) VALUES (?, ?, ?, ?, datetime('now'))`,
+          await pool.query(
+            `
+            INSERT INTO images (filename, prompt_id, workflow_id, config_id, created_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)`,
             [
               localFilename,
               promptId,
@@ -248,37 +255,29 @@ app.get("/api/ping", (req, res) => {
 });
 
 // Initialize configurations table
-configDb.serialize(() => {
-  configDb.run(`
+(async () => {
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS configurations (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      workflowId TEXT NOT NULL,
-      name TEXT NOT NULL,
-      description TEXT,
-      parameterOverrides TEXT,
-      exposedParameters TEXT,
-      inputModes TEXT,
-      parameterOrder TEXT
-    )
+      id SERIAL PRIMARY KEY,
+      name TEXT,
+      workflow_id TEXT,
+      parameters JSONB,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
   `);
-});
+})();
 
 // Ensure inputModes column exists
-configDb.serialize(() => {
-  configDb.get("PRAGMA table_info(configurations)", (err, info) => {
-    if (err) return;
-    configDb.all("PRAGMA table_info(configurations)", (err, columns) => {
-      if (err) return;
-      const hasInputModes = columns.some((col) => col.name === "inputModes");
-      if (!hasInputModes) {
-        configDb.run(
-          "ALTER TABLE configurations ADD COLUMN inputModes TEXT",
-          () => {}
-        );
-      }
-    });
-  });
-});
+(async () => {
+  const result = await pool.query(`
+    SELECT column_name FROM information_schema.columns WHERE table_name = 'configurations' AND column_name = 'inputModes';
+  `);
+  if (result.rows.length === 0) {
+    await pool.query(`
+      ALTER TABLE configurations ADD COLUMN inputModes JSONB;
+    `);
+  }
+})();
 
 // POST /api/configurations - create a new configuration
 app.post("/api/configurations", (req, res) => {
@@ -294,22 +293,24 @@ app.post("/api/configurations", (req, res) => {
   if (!workflowId || !name) {
     return res.status(400).json({ error: "workflowId and name are required" });
   }
-  configDb.run(
-    `INSERT INTO configurations (workflowId, name, description, parameterOverrides, exposedParameters, inputModes, parameterOrder) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+  pool.query(
+    `INSERT INTO configurations (workflow_id, name, parameters) VALUES ($1, $2, $3) RETURNING id`,
     [
       workflowId,
       name,
-      description || "",
-      JSON.stringify(parameterOverrides || {}),
-      JSON.stringify(exposedParameters || []),
-      JSON.stringify(inputModes || {}),
-      JSON.stringify(parameterOrder || []),
+      {
+        description,
+        parameterOverrides: JSON.stringify(parameterOverrides || {}),
+        exposedParameters: JSON.stringify(exposedParameters || []),
+        inputModes: JSON.stringify(inputModes || {}),
+        parameterOrder: JSON.stringify(parameterOrder || []),
+      },
     ],
-    function (err) {
+    (err, result) => {
       if (err) {
         return res.status(500).json({ error: err.message });
       }
-      res.json({ id: this.lastID });
+      res.json({ id: result.rows[0].id });
     }
   );
 });
@@ -317,26 +318,17 @@ app.post("/api/configurations", (req, res) => {
 // GET /api/configurations/:workflowId - list configurations for a workflow
 app.get("/api/configurations/:workflowId", (req, res) => {
   const { workflowId } = req.params;
-  configDb.all(
-    `SELECT * FROM configurations WHERE workflowId = ?`,
+  pool.query(
+    `SELECT * FROM configurations WHERE workflow_id = $1`,
     [workflowId],
-    (err, rows) => {
+    (err, result) => {
       if (err) {
         return res.status(500).json({ error: err.message });
       }
       // Parse JSON fields
-      const configs = rows.map((row) => ({
+      const configs = result.rows.map((row) => ({
         ...row,
-        parameterOverrides: row.parameterOverrides
-          ? JSON.parse(row.parameterOverrides)
-          : {},
-        exposedParameters: row.exposedParameters
-          ? JSON.parse(row.exposedParameters)
-          : [],
-        inputModes: row.inputModes ? JSON.parse(row.inputModes) : {},
-        parameterOrder: row.parameterOrder
-          ? JSON.parse(row.parameterOrder)
-          : [],
+        parameters: JSON.parse(row.parameters),
       }));
       res.json(configs);
     }
@@ -355,24 +347,26 @@ app.put("/api/configurations/:id", (req, res) => {
     parameterOrder,
   } = req.body;
   console.log("[PUT] Update config", { id, parameterOrder }); // DEBUG
-  configDb.run(
-    `UPDATE configurations SET name = ?, description = ?, parameterOverrides = ?, exposedParameters = ?, inputModes = ?, parameterOrder = ? WHERE id = ?`,
+  pool.query(
+    `UPDATE configurations SET name = $1, description = $2, parameters = $3 WHERE id = $4 RETURNING *`,
     [
       name,
       description || "",
-      JSON.stringify(parameterOverrides || {}),
-      JSON.stringify(exposedParameters || []),
-      JSON.stringify(inputModes || {}),
-      JSON.stringify(parameterOrder || []),
+      JSON.stringify({
+        parameterOverrides: parameterOverrides || {},
+        exposedParameters: exposedParameters || [],
+        inputModes: inputModes || {},
+        parameterOrder: parameterOrder || [],
+      }),
       id,
     ],
-    function (err) {
+    (err, result) => {
       if (err) {
         console.error("[PUT] Update error:", err); // DEBUG
         return res.status(500).json({ error: err.message });
       }
-      console.log("[PUT] Update result:", this); // DEBUG
-      res.json({ updated: this.changes });
+      console.log("[PUT] Update result:", result); // DEBUG
+      res.json(result.rows[0]);
     }
   );
 });
@@ -380,31 +374,28 @@ app.put("/api/configurations/:id", (req, res) => {
 // DELETE /api/configurations/:id - delete a configuration
 app.delete("/api/configurations/:id", (req, res) => {
   const { id } = req.params;
-  configDb.run(`DELETE FROM configurations WHERE id = ?`, [id], function (err) {
-    if (err) {
-      return res.status(500).json({ error: err.message });
+  pool.query(
+    `DELETE FROM configurations WHERE id = $1 RETURNING *`,
+    [id],
+    (err, result) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      res.json(result.rows[0]);
     }
-    res.json({ deleted: this.changes });
-  });
+  );
 });
 
 // GET /api/configurations - list all configurations
 app.get("/api/configurations", (req, res) => {
-  configDb.all(`SELECT * FROM configurations`, [], (err, rows) => {
+  pool.query(`SELECT * FROM configurations`, [], (err, result) => {
     if (err) {
       return res.status(500).json({ error: err.message });
     }
     // Parse JSON fields
-    const configs = rows.map((row) => ({
+    const configs = result.rows.map((row) => ({
       ...row,
-      parameterOverrides: row.parameterOverrides
-        ? JSON.parse(row.parameterOverrides)
-        : {},
-      exposedParameters: row.exposedParameters
-        ? JSON.parse(row.exposedParameters)
-        : [],
-      inputModes: row.inputModes ? JSON.parse(row.inputModes) : {},
-      parameterOrder: row.parameterOrder ? JSON.parse(row.parameterOrder) : [],
+      parameters: JSON.parse(row.parameters),
     }));
     res.json(configs);
   });
@@ -475,14 +466,14 @@ app.get("/api/workflows/:filename", (req, res) => {
 
 // GET /api/images - list all generated images and metadata
 app.get("/api/images", (req, res) => {
-  configDb.all(
+  pool.query(
     `SELECT * FROM images ORDER BY created_at DESC`,
     [],
-    (err, rows) => {
+    (err, result) => {
       if (err) {
         return res.status(500).json({ error: err.message });
       }
-      res.json(rows);
+      res.json(result.rows);
     }
   );
 });
@@ -499,10 +490,10 @@ app.delete("/api/images/:filename", (req, res) => {
   }
 
   // Delete from database first
-  configDb.run(
-    "DELETE FROM images WHERE filename = ?",
+  pool.query(
+    `DELETE FROM images WHERE filename = $1 RETURNING *`,
     [filename],
-    function (err) {
+    (err, result) => {
       if (err) {
         console.error("[ERROR] Database deletion failed:", err);
         return res
