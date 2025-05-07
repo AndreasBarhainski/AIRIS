@@ -2,7 +2,7 @@
   "scripts": {
     "frontend": "cd frontend && npm run dev",
     "backend": "cd backend && node index.js",
-    "heroku-postbuild": "cd frontend && npm install && npm run build"
+    "heroku-postbuild": "cd frontend && npm install && npm run build && cd ../backend && npm install"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
