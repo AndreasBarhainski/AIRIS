@@ -13,8 +13,20 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 const DEFAULT_COMFY_URL = "http://localhost:8188";
 
-// Enable CORS for all origins (for development)
+// Setup PostgreSQL connection
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl:
+    process.env.NODE_ENV === "production"
+      ? { rejectUnauthorized: false }
+      : false,
+});
+
+// Define all routes before starting the server
 app.use(cors());
+
+// Express middleware
+app.use(express.json());
 
 // Multer setup for saving files in 'workflows' directory
 const storage = multer.diskStorage({
@@ -28,7 +40,16 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// POST /api/workflows - upload a workflow JSON file
+// Serve images statically
+const IMAGES_DIR = path.join(__dirname, "images");
+const COMFY_OUTPUTS_DIR = path.resolve(__dirname, "..", "comfyui", "output");
+
+// Ensure images directory exists
+if (!fs.existsSync(IMAGES_DIR)) {
+  fs.mkdirSync(IMAGES_DIR);
+}
+
+// API ROUTES
 app.post("/api/workflows", upload.single("workflow"), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: "No file uploaded" });
@@ -39,8 +60,6 @@ app.post("/api/workflows", upload.single("workflow"), (req, res) => {
     path: req.file.path,
   });
 });
-
-app.use(express.json());
 
 // POST /api/generate-image - submit workflow and return prompt_id
 app.post("/api/generate-image", async (req, res) => {
@@ -109,78 +128,6 @@ app.post("/api/generate-image", async (req, res) => {
       .status(500)
       .json({ error: "Internal server error", details: err.message });
   }
-});
-
-const IMAGES_DIR = path.join(__dirname, "images");
-const COMFY_OUTPUTS_DIR = path.resolve(__dirname, "..", "comfyui", "output");
-
-// Ensure images directory exists
-if (!fs.existsSync(IMAGES_DIR)) {
-  fs.mkdirSync(IMAGES_DIR);
-}
-
-// Setup PostgreSQL connection
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl:
-    process.env.NODE_ENV === "production"
-      ? { rejectUnauthorized: false }
-      : false,
-});
-
-async function startServer() {
-  // Create images table
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS images (
-      id SERIAL PRIMARY KEY,
-      filename TEXT NOT NULL,
-      prompt_id TEXT,
-      workflow_id TEXT,
-      config_id TEXT,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-  `);
-
-  // Create configurations table
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS configurations (
-      id SERIAL PRIMARY KEY,
-      name TEXT,
-      workflow_id TEXT,
-      parameters JSONB,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-  `);
-
-  // Ensure inputmodes column exists (use all lowercase for Postgres)
-  const result = await pool.query(`
-    SELECT column_name FROM information_schema.columns WHERE table_name = 'configurations' AND column_name = 'inputmodes';
-  `);
-  if (result.rows.length === 0) {
-    await pool.query(`
-      ALTER TABLE configurations ADD COLUMN inputmodes JSONB;
-    `);
-  }
-
-  app.listen(PORT, () => {
-    console.log(`Backend server running on http://localhost:${PORT}`);
-  });
-}
-
-// Serve images statically
-app.use("/images", express.static(IMAGES_DIR));
-
-// Serve frontend build (after all API routes)
-app.use(express.static(path.join(__dirname, "../frontend/dist")));
-
-// Correct catch-all route for React Router (must be last)
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
-});
-
-startServer().catch((err) => {
-  console.error("Failed to start server:", err);
-  process.exit(1);
 });
 
 // GET /api/progress/:prompt_id - poll ComfyUI for progress and image info
@@ -721,3 +668,61 @@ app.get("/api/comfy/view", async (req, res) => {
     });
   }
 });
+
+// FRONTEND ROUTES - MUST BE LAST
+// Serve frontend build files
+app.use(express.static(path.join(__dirname, "../frontend/dist")));
+
+// Catch-all route for React Router (must be the very last route)
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
+});
+
+// Server startup with database initialization
+async function startServer() {
+  try {
+    // Create images table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS images (
+        id SERIAL PRIMARY KEY,
+        filename TEXT NOT NULL,
+        prompt_id TEXT,
+        workflow_id TEXT,
+        config_id TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    // Create configurations table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS configurations (
+        id SERIAL PRIMARY KEY,
+        name TEXT,
+        workflow_id TEXT,
+        parameters JSONB,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    // Ensure inputmodes column exists (use all lowercase for Postgres)
+    const result = await pool.query(`
+      SELECT column_name FROM information_schema.columns WHERE table_name = 'configurations' AND column_name = 'inputmodes';
+    `);
+    if (result.rows.length === 0) {
+      await pool.query(`
+        ALTER TABLE configurations ADD COLUMN inputmodes JSONB;
+      `);
+    }
+
+    // Only listen after database setup is complete
+    app.listen(PORT, () => {
+      console.log(`Backend server running on http://localhost:${PORT}`);
+    });
+  } catch (err) {
+    console.error("Failed to start server:", err);
+    process.exit(1);
+  }
+}
+
+// Start the server
+startServer();
