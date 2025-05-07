@@ -152,13 +152,13 @@ async function startServer() {
     );
   `);
 
-  // Ensure inputModes column exists
+  // Ensure inputmodes column exists (use all lowercase for Postgres)
   const result = await pool.query(`
-    SELECT column_name FROM information_schema.columns WHERE table_name = 'configurations' AND column_name = 'inputModes';
+    SELECT column_name FROM information_schema.columns WHERE table_name = 'configurations' AND column_name = 'inputmodes';
   `);
   if (result.rows.length === 0) {
     await pool.query(`
-      ALTER TABLE configurations ADD COLUMN inputModes JSONB;
+      ALTER TABLE configurations ADD COLUMN inputmodes JSONB;
     `);
   }
 
