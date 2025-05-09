@@ -548,6 +548,24 @@ app.post("/api/comfy/upload", upload.single("image"), async (req, res) => {
       return res.status(400).json({ error: "No file uploaded" });
     }
 
+    // --- Strip metadata from uploaded image before sending to ComfyUI ---
+    try {
+      await sharp(req.file.path)
+        .withMetadata({ exif: undefined })
+        .toFile(req.file.path + ".stripped");
+      fs.renameSync(req.file.path + ".stripped", req.file.path);
+      console.log(
+        `[DEBUG] Stripped metadata from uploaded image: ${req.file.filename}`
+      );
+    } catch (stripErr) {
+      console.error(
+        "[ERROR] Failed to strip metadata from uploaded image:",
+        stripErr
+      );
+      // Optionally, you can return an error here or proceed with the original file
+    }
+    // --- End metadata stripping ---
+
     const comfyApiUrl = req.query.comfyApiUrl || DEFAULT_COMFY_URL;
     console.log("[DEBUG] Uploading image to ComfyUI at:", comfyApiUrl);
 
