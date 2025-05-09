@@ -1,4 +1,3 @@
-require("dotenv").config();
 const express = require("express");
 const multer = require("multer");
 const cors = require("cors");
@@ -9,6 +8,13 @@ const { Pool } = require("pg");
 const axios = require("axios");
 const FormData = require("form-data");
 const { URL } = require("url");
+const sharp = require("sharp");
+
+require("dotenv").config({ path: path.resolve(__dirname, "../.env") });
+console.log("[DEBUG] process.env.OPENAI_KEY:", process.env.OPENAI_KEY);
+
+require("dotenv").config({ path: path.resolve(__dirname, "../.env") });
+console.log("[DEBUG] process.env.OPENAI_KEY:", process.env.OPENAI_KEY);
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -130,6 +136,57 @@ app.post("/api/generate-image", async (req, res) => {
       "..."
     );
 
+    // --- Apply paramValues from frontend ---
+    if (req.body.paramValues && typeof req.body.paramValues === "object") {
+      for (const [key, value] of Object.entries(req.body.paramValues)) {
+        if (value === undefined) continue;
+        const [nodeId, paramName] = key.split(".");
+        if (workflow[nodeId]?.inputs && !key.endsWith("_mode")) {
+          workflow[nodeId].inputs[paramName] = value;
+        }
+      }
+      console.log(
+        "[DEBUG] Workflow after paramValues applied:",
+        JSON.stringify(workflow, null, 2)
+      );
+    }
+    // --- End paramValues application ---
+
+    // --- Variable replacement logic ---
+    // Recursively replace <<VARIABLE>> with process.env[VARIABLE] or req.body[VARIABLE]
+    function deepReplaceVars(obj) {
+      if (typeof obj === "string") {
+        const match = obj.match(/^<<(.+?)>>$/);
+        if (match) {
+          const varName = match[1];
+          // 1. Check process.env
+          if (process.env[varName] !== undefined) {
+            return process.env[varName];
+          }
+          // 2. Check request body (frontend-supplied variables)
+          if (req.body[varName] !== undefined) {
+            return req.body[varName];
+          }
+        }
+        return obj;
+      } else if (Array.isArray(obj)) {
+        return obj.map(deepReplaceVars);
+      } else if (obj && typeof obj === "object") {
+        const out = {};
+        for (const [k, v] of Object.entries(obj)) {
+          out[k] = deepReplaceVars(v);
+        }
+        return out;
+      }
+      return obj;
+    }
+    workflow = deepReplaceVars(workflow);
+    console.log(
+      "[DEBUG] Workflow after env var replacement:",
+      JSON.stringify(workflow, null, 2)
+    );
+    // --- End variable replacement logic ---
+
     // Send workflow to ComfyUI API (assume /prompt endpoint)
     console.log(
       "[DEBUG] Workflow sent to ComfyUI:",
@@ -246,6 +303,21 @@ app.get("/api/progress/:prompt_id", async (req, res) => {
             writer.on("finish", resolve);
             writer.on("error", reject);
           });
+          // Strip metadata from the image using sharp
+          try {
+            await sharp(localPath)
+              .withMetadata({ exif: undefined })
+              .toFile(localPath + ".stripped");
+            fs.renameSync(localPath + ".stripped", localPath);
+            console.log(
+              `[DEBUG] Stripped metadata from image: ${localFilename}`
+            );
+          } catch (stripErr) {
+            console.error(
+              "[ERROR] Failed to strip metadata from image:",
+              stripErr
+            );
+          }
           // Insert metadata into DB
           await pool.query(
             `

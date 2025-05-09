@@ -12,7 +12,8 @@
     "concurrently": "^8.2.2"
   },
   "dependencies": {
-    "node-fetch": "^2.7.0"
+    "node-fetch": "^2.7.0",
+    "sharp": "^0.34.1"
   },
   "engines": {
     "node": "20.x",

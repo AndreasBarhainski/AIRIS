@@ -28,42 +28,39 @@ const WorkflowImportDialog: React.FC<WorkflowImportDialogProps> = ({
       // Upload to backend
       const formData = new FormData();
       formData.append("workflow", file);
-      const response = await fetch("http://localhost:4000/api/workflows", {
+      const response = await fetch("/api/workflows", {
         method: "POST",
         body: formData,
       });
       if (!response.ok) throw new Error("Upload failed");
       const result = await response.json();
-      // Parse for summary and parameters
+      // Parse for summary (no validation)
       const text = await file.text();
-      const json = JSON.parse(text);
-      let parameters: string[] = [];
-      if (json.nodes) {
-        if (Array.isArray(json.nodes)) {
-          parameters = json.nodes.flatMap((node: any) =>
-            node.inputs ? Object.keys(node.inputs) : []
-          );
-        } else if (typeof json.nodes === "object") {
-          parameters = Object.values(json.nodes).flatMap((node: any) =>
-            node.inputs ? Object.keys(node.inputs) : []
-          );
-        }
-        parameters = Array.from(new Set(parameters));
+      let json: any = {};
+      try {
+        json = JSON.parse(text);
+      } catch (err) {
+        // If not valid JSON, just use empty object
+        json = {};
       }
+      // Always create a generic summary
       const workflowSummary = {
-        name: json.name || "Unnamed Workflow",
-        nodeCount: Array.isArray(json.nodes)
-          ? json.nodes.length
-          : Object.keys(json.nodes || {}).length,
-        parameters,
+        name: json.name || file.name || "Unnamed Workflow",
+        nodeCount: json.nodes
+          ? Array.isArray(json.nodes)
+            ? json.nodes.length
+            : typeof json.nodes === "object"
+            ? Object.keys(json.nodes).length
+            : 0
+          : 0,
+        parameters: [],
         filename: result.filename,
+        topLevelKeys: Object.keys(json),
       };
       setSuccess("Workflow uploaded and saved successfully.");
       onImported(workflowSummary);
     } catch (err) {
-      setError(
-        "Invalid workflow file or upload failed. Please upload a valid ComfyUI workflow JSON."
-      );
+      setError("Upload failed. Please try again.");
     }
     if (fileUploadRef.current) fileUploadRef.current.clear();
   };

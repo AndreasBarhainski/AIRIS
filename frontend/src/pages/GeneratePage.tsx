@@ -253,25 +253,15 @@ const GeneratePage: React.FC = () => {
     };
 
     try {
-      // 1. Manipulate the workflow JSON
-      const manipulatedWorkflow = JSON.parse(JSON.stringify(workflowJson)); // deep clone
-      Object.entries(paramValues).forEach(([key, value]) => {
-        if (value === undefined) return; // Only skip truly undefined values
-        const [nodeId, paramName] = key.split(".");
-        if (manipulatedWorkflow[nodeId]?.inputs && !key.endsWith("_mode")) {
-          manipulatedWorkflow[nodeId].inputs[paramName] = value;
-        }
-      });
-      console.log("Manipulated workflow sent to API:", manipulatedWorkflow);
-
-      // 2. Send the manipulated workflow JSON to the backend
+      // Send the raw workflow and paramValues to the backend
       const response = await fetch("/api/generate-image", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           comfyApiUrl,
           client_id: clientId.current,
-          workflow: manipulatedWorkflow,
+          workflow: workflowJson,
+          paramValues,
         }),
       });
       if (!response.ok) {
