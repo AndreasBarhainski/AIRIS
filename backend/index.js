@@ -324,36 +324,24 @@ app.get("/api/progress/:prompt_id", async (req, res) => {
           // --- End OpenAI key replacement ---
 
           const response = await axios.get(imageUrl, {
-            responseType: "stream",
+            responseType: "arraybuffer",
           });
-          await new Promise((resolve, reject) => {
-            const writer = fs.createWriteStream(localPath);
-            response.data.pipe(writer);
-            writer.on("finish", resolve);
-            writer.on("error", reject);
-          });
-          // Strip metadata from the image using sharp
-          try {
-            await sharp(localPath)
-              .withMetadata({ exif: undefined })
-              .toFile(localPath + ".stripped");
-            // Remove all PNG text chunks if the file is a PNG
-            if (localPath.toLowerCase().endsWith(".png")) {
-              const data = fs.readFileSync(localPath + ".stripped");
-              const png = PNG.sync.read(data);
-              png.text = {};
-              fs.writeFileSync(localPath + ".stripped", PNG.sync.write(png));
-            }
-            fs.renameSync(localPath + ".stripped", localPath);
-            console.log(
-              `[DEBUG] Stripped metadata and text chunks from image: ${localFilename}`
-            );
-          } catch (stripErr) {
-            console.error(
-              "[ERROR] Failed to strip metadata from image:",
-              stripErr
-            );
+          let imageBuffer = Buffer.from(response.data);
+          // Use sharp to strip EXIF metadata in memory
+          let processedBuffer = await sharp(imageBuffer)
+            .withMetadata({ exif: undefined })
+            .toBuffer();
+          // If PNG, remove all text chunks using pngjs
+          if (localFilename.toLowerCase().endsWith(".png")) {
+            const png = PNG.sync.read(processedBuffer);
+            png.text = {};
+            processedBuffer = PNG.sync.write(png);
           }
+          // Now save the processed buffer to disk
+          fs.writeFileSync(localPath, processedBuffer);
+          console.log(
+            `[DEBUG] Downloaded, cleaned, and saved image: ${localFilename}`
+          );
           // Insert metadata into DB
           await pool.query(
             `
