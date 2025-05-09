@@ -294,6 +294,29 @@ app.get("/api/progress/:prompt_id", async (req, res) => {
       const localPath = path.join(IMAGES_DIR, localFilename);
       if (!fs.existsSync(localPath)) {
         try {
+          // --- Replace OpenAI key with variable name in workflow data before saving image ---
+          const openaiKey = process.env.OPENAI_KEY;
+          if (openaiKey) {
+            // Recursively replace all occurrences in promptHistory
+            function deepReplaceOpenAIKey(obj) {
+              if (typeof obj === "string" && obj === openaiKey) {
+                return "<<OPENAI_KEY>>";
+              } else if (Array.isArray(obj)) {
+                return obj.map(deepReplaceOpenAIKey);
+              } else if (obj && typeof obj === "object") {
+                const out = {};
+                for (const [k, v] of Object.entries(obj)) {
+                  out[k] = deepReplaceOpenAIKey(v);
+                }
+                return out;
+              }
+              return obj;
+            }
+            // Mutate promptHistory in place
+            Object.assign(promptHistory, deepReplaceOpenAIKey(promptHistory));
+          }
+          // --- End OpenAI key replacement ---
+
           const response = await axios.get(imageUrl, {
             responseType: "stream",
           });
