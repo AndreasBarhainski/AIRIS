@@ -78,7 +78,8 @@ const ImagesPage: React.FC = () => {
 
   const downloadImage = (img: ImageMeta) => {
     const link = document.createElement("a");
-    link.href = `http://localhost:4000/images/${img.filename}`;
+    const imageUrl = `/images/${img.filename}`;
+    link.href = imageUrl;
     link.download = img.filename;
     document.body.appendChild(link);
     link.click();
@@ -225,7 +226,7 @@ const ImagesPage: React.FC = () => {
 
   // Copy image URL to clipboard
   const copyImageLink = (img: ImageMeta) => {
-    const imageUrl = `http://localhost:4000/images/${img.filename}`;
+    const imageUrl = `/images/${img.filename}`;
     navigator.clipboard
       .writeText(imageUrl)
       .then(() => {
@@ -306,7 +307,7 @@ const ImagesPage: React.FC = () => {
                 onClick={goToPrevImage}
               />
               <img
-                src={`http://localhost:4000/images/${selectedImageData.filename}`}
+                src={`/images/${selectedImageData.filename}`}
                 alt={selectedImageData.filename}
                 className="lightbox-image"
               />
@@ -511,7 +512,7 @@ const ImagesPage: React.FC = () => {
                   />
                 </div>
                 <img
-                  src={`http://localhost:4000/images/${img.filename}`}
+                  src={`/images/${img.filename}`}
                   alt={img.filename}
                   onClick={() => openLightbox(img)}
                 />

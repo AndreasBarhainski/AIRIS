@@ -16,13 +16,13 @@ interface ConfigurationsStore {
   configurations: Configuration[];
   loading: boolean;
   error: string | null;
-  loadConfigurations: (workflowId: string) => Promise<void>;
+  loadConfigurations: (workflowId?: string | number) => Promise<void>;
   createConfiguration: (config: Omit<Configuration, "id">) => Promise<void>;
   updateConfiguration: (
-    id: number,
+    id: number | string,
     config: Partial<Configuration>
   ) => Promise<void>;
-  deleteConfiguration: (id: number) => Promise<void>;
+  deleteConfiguration: (id: number | string) => Promise<void>;
 }
 
 // Utility to validate/cast inputModes
@@ -53,10 +53,10 @@ export const useConfigurationsStore = create<ConfigurationsStore>(
     configurations: [],
     loading: false,
     error: null,
-    loadConfigurations: async (workflowId: string) => {
+    loadConfigurations: async (workflowId?: string | number) => {
       set({ loading: true, error: null });
       try {
-        let url = "http://localhost:4000/api/configurations";
+        let url = "/api/configurations";
         if (workflowId) {
           url += `/${workflowId}`;
         }
@@ -76,7 +76,7 @@ export const useConfigurationsStore = create<ConfigurationsStore>(
     createConfiguration: async (config: Omit<Configuration, "id">) => {
       set({ loading: true, error: null });
       try {
-        const res = await fetch("http://localhost:4000/api/configurations", {
+        const res = await fetch("/api/configurations", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(config),
@@ -87,17 +87,17 @@ export const useConfigurationsStore = create<ConfigurationsStore>(
         set({ error: err.message, loading: false });
       }
     },
-    updateConfiguration: async (id: number, config: Partial<Configuration>) => {
+    updateConfiguration: async (
+      id: number | string,
+      config: Partial<Configuration>
+    ) => {
       set({ loading: true, error: null });
       try {
-        const res = await fetch(
-          `http://localhost:4000/api/configurations/${id}`,
-          {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(config),
-          }
-        );
+        const res = await fetch(`/api/configurations/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(config),
+        });
         if (!res.ok) throw new Error("Failed to update configuration");
         // Find workflowId from current state
         const current = get().configurations.find(
@@ -109,7 +109,7 @@ export const useConfigurationsStore = create<ConfigurationsStore>(
         set({ error: err.message, loading: false });
       }
     },
-    deleteConfiguration: async (id: number) => {
+    deleteConfiguration: async (id: number | string) => {
       set({ loading: true, error: null });
       try {
         // Find workflowId from current state
@@ -117,12 +117,9 @@ export const useConfigurationsStore = create<ConfigurationsStore>(
           (c: Configuration) => c.id === id
         );
         if (!current) throw new Error("Configuration not found");
-        const res = await fetch(
-          `http://localhost:4000/api/configurations/${id}`,
-          {
-            method: "DELETE",
-          }
-        );
+        const res = await fetch(`/api/configurations/${id}`, {
+          method: "DELETE",
+        });
         if (!res.ok) throw new Error("Failed to delete configuration");
         await get().loadConfigurations(current.workflowId);
       } catch (err: any) {

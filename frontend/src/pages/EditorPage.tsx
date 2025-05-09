@@ -59,7 +59,7 @@ const EditorPage: React.FC = () => {
   // Fetch all workflows on mount
   useEffect(() => {
     const fetchWorkflows = async () => {
-      const res = await fetch("http://localhost:4000/api/workflows");
+      const res = await fetch("/api/workflows");
       const data = await res.json();
       setAllWorkflows(data);
     };
@@ -70,7 +70,7 @@ const EditorPage: React.FC = () => {
   // When a workflow is selected for new config, fetch its nodes
   useEffect(() => {
     if (newConfig.workflowId) {
-      fetch(`http://localhost:4000/api/workflows/${newConfig.workflowId}`)
+      fetch(`/api/workflows/${newConfig.workflowId}`)
         .then((res) => res.json())
         .then((json) => {
           const nodes = Object.entries(json).map(

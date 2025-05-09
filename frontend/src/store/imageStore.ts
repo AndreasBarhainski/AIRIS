@@ -14,6 +14,7 @@ interface ImageState {
   images: ImageMeta[];
   comfyInputImages: string[];
   loading: boolean;
+  loadingComfyInputImages: boolean;
   error: string | null;
   loadImages: () => Promise<void>;
   loadComfyInputImages: () => Promise<void>;
@@ -25,12 +26,13 @@ export const useImageStore = create<ImageState>((set) => ({
   images: [],
   comfyInputImages: [],
   loading: false,
+  loadingComfyInputImages: false,
   error: null,
 
   loadImages: async () => {
     set({ loading: true, error: null });
     try {
-      const response = await fetch("http://localhost:4000/api/images");
+      const response = await fetch("/api/images");
       if (!response.ok) {
         throw new Error(`Failed to load images: ${response.statusText}`);
       }
@@ -44,13 +46,11 @@ export const useImageStore = create<ImageState>((set) => ({
   },
 
   loadComfyInputImages: async () => {
-    set({ loading: true, error: null });
+    set({ loadingComfyInputImages: true, error: null });
     try {
       const comfyApiUrl = useSettingsStore.getState().comfyApiUrl;
       const response = await fetch(
-        `http://localhost:4000/api/comfy/input_images?comfyApiUrl=${encodeURIComponent(
-          comfyApiUrl
-        )}`
+        `/api/comfy/input_images?comfyApiUrl=${encodeURIComponent(comfyApiUrl)}`
       );
 
       if (!response.ok) {
@@ -68,13 +68,13 @@ export const useImageStore = create<ImageState>((set) => ({
         throw new Error("Invalid response format: expected array of filenames");
       }
 
-      set({ comfyInputImages: filenames, loading: false });
+      set({ comfyInputImages: filenames, loadingComfyInputImages: false });
     } catch (error: unknown) {
       console.error("Failed to load ComfyUI input images:", error);
       const message = error instanceof Error ? error.message : String(error);
       set({
         error: `Failed to load ComfyUI input images: ${message}`,
-        loading: false,
+        loadingComfyInputImages: false,
         comfyInputImages: [],
       });
     }
@@ -88,9 +88,7 @@ export const useImageStore = create<ImageState>((set) => ({
       formData.append("image", file);
 
       const response = await fetch(
-        `http://localhost:4000/api/comfy/upload?comfyApiUrl=${encodeURIComponent(
-          comfyApiUrl
-        )}`,
+        `/api/comfy/upload?comfyApiUrl=${encodeURIComponent(comfyApiUrl)}`,
         {
           method: "POST",
           body: formData,
@@ -120,7 +118,7 @@ export const useImageStore = create<ImageState>((set) => ({
   deleteImage: async (filename: string) => {
     try {
       const response = await fetch(
-        `http://localhost:4000/api/images/${encodeURIComponent(filename)}`,
+        `/api/images/${encodeURIComponent(filename)}`,
         {
           method: "DELETE",
         }

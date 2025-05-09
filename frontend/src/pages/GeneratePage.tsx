@@ -19,6 +19,7 @@ import {
   getNodeDisplayName,
 } from "../utils/parameterUtils";
 import "./GeneratePage.css";
+import { getWsUrl } from "../config";
 
 const GeneratePage: React.FC = () => {
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
@@ -58,7 +59,7 @@ const GeneratePage: React.FC = () => {
     if (selectedConfigId != null) {
       const config = configurations.find((c) => c.id === selectedConfigId);
       if (config && config.workflowId) {
-        fetch(`http://localhost:4000/api/workflows/${config.workflowId}`)
+        fetch(`/api/workflows/${config.workflowId}`)
           .then((res) => res.json())
           .then((json) => {
             setWorkflowJson(json);
@@ -238,8 +239,7 @@ const GeneratePage: React.FC = () => {
     setGeneratedImage(null);
 
     // 1. Open WebSocket for real-time progress
-    const wsUrl =
-      comfyApiUrl.replace(/^http/, "ws") + `/ws?clientId=${clientId.current}`;
+    const wsUrl = getWsUrl(comfyApiUrl, clientId.current);
     wsRef.current = new window.WebSocket(wsUrl);
     wsRef.current.onmessage = (event) => {
       try {
@@ -265,7 +265,7 @@ const GeneratePage: React.FC = () => {
       console.log("Manipulated workflow sent to API:", manipulatedWorkflow);
 
       // 2. Send the manipulated workflow JSON to the backend
-      const response = await fetch("http://localhost:4000/api/generate-image", {
+      const response = await fetch("/api/generate-image", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -282,11 +282,11 @@ const GeneratePage: React.FC = () => {
 
       // 3. Poll for completion (as before)
       let polling = true;
-      const BACKEND_URL = "http://localhost:4000";
+      const BACKEND_URL = ""; // Empty for relative URLs
       while (polling) {
         await new Promise((r) => setTimeout(r, 1000));
         const progressRes = await fetch(
-          `http://localhost:4000/api/progress/${prompt_id}?comfyApiUrl=${encodeURIComponent(
+          `/api/progress/${prompt_id}?comfyApiUrl=${encodeURIComponent(
             comfyApiUrl
           )}`
         );

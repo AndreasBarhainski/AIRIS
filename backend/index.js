@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const multer = require("multer");
 const cors = require("cors");
@@ -10,14 +11,15 @@ const FormData = require("form-data");
 const { URL } = require("url");
 
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 5001;
 const DEFAULT_COMFY_URL = "http://localhost:8188";
 
 // Setup PostgreSQL connection
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl:
-    process.env.NODE_ENV === "production"
+    process.env.NODE_ENV === "production" &&
+    process.env.DATABASE_URL.includes("herokuapp")
       ? { rejectUnauthorized: false }
       : false,
 });
@@ -79,6 +81,9 @@ if (!fs.existsSync(FRONTEND_DIST)) {
   fs.writeFileSync(path.join(FRONTEND_DIST, "index.html"), placeholderHTML);
   console.log("[INFO] Created placeholder frontend files");
 }
+
+// Serve images statically
+app.use("/images", express.static(path.join(__dirname, "images")));
 
 // Detect environment
 const isProduction = process.env.NODE_ENV === "production";

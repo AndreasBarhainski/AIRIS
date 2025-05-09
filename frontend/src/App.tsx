@@ -28,9 +28,9 @@ const Navigation: React.FC<{
       command: () => navigate("/"),
     },
     {
-      label: "Images",
+      label: "Gallery",
       icon: "pi pi-image",
-      command: () => navigate("/images"),
+      command: () => navigate("/gallery"),
     },
     {
       label: "Editor",
@@ -106,7 +106,7 @@ const App: React.FC = () => {
         <div className="main-content">
           <Routes>
             <Route path="/" element={<GeneratePage />} />
-            <Route path="/images" element={<ImagesPage />} />
+            <Route path="/gallery" element={<ImagesPage />} />
             <Route path="/editor" element={<EditorPage />} />
           </Routes>
         </div>

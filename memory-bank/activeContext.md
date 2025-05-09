@@ -9,6 +9,13 @@
 
 ## Recent Changes
 
+- Set up local development environment:
+  - Updated package.json with dev script for concurrent frontend/backend
+  - Configured Vite proxy for API requests
+  - Created config.ts for centralizing API URL configuration
+  - Replaced hardcoded URLs with relative paths
+  - Updated backend port to 5000 for development
+  - Created LOCAL_DEVELOPMENT.md with setup instructions
 - Resolved LoadImage node info extraction issue:
   - Identified correct node structure in object_info response
   - Updated parsing logic to handle array-based image list

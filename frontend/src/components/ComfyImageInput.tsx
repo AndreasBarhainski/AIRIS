@@ -75,9 +75,9 @@ const ComfyImageInput: React.FC<ComfyImageInputProps> = ({
       <div className="image-preview mt-2">
         <img
           key={value} // This ensures the image refreshes when the value changes
-          src={`http://localhost:4000/api/comfy/view?comfyApiUrl=${encodeURIComponent(
+          src={`/api/comfy/view?comfyApiUrl=${encodeURIComponent(
             comfyApiUrl
-          )}&filename=${encodeURIComponent(value)}&type=input`}
+          )}&filename=${encodeURIComponent(value)}`}
           alt="Preview"
         />
         <Button
