@@ -10,6 +10,7 @@ export interface Configuration {
   exposedParameters: { [nodeId: string]: string[] };
   inputModes?: { [nodeId: string]: { [param: string]: StringInputMode } };
   parameterOrder?: string[] | { [nodeId: string]: string[] };
+  parameters?: any;
 }
 
 interface ConfigurationsStore {

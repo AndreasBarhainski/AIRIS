@@ -625,7 +625,11 @@ const EditorPage: React.FC = () => {
                 Workflow: {config.workflowId}
                 <br />
                 Exposed:{" "}
-                {Object.entries(config.exposedParameters)
+                {Object.entries(
+                  config.exposedParameters ||
+                    config.parameters?.exposedParameters ||
+                    {}
+                )
                   .map(
                     ([nodeId, params]) => `${nodeId}: [${params.join(", ")}]`
                   )
