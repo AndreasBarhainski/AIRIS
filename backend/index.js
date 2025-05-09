@@ -8,6 +8,7 @@ const { Pool } = require("pg");
 const axios = require("axios");
 const FormData = require("form-data");
 const { URL } = require("url");
+const sharp = require("sharp");
 
 require("dotenv").config({ path: path.resolve(__dirname, "../.env") });
 console.log("[DEBUG] process.env.OPENAI_KEY:", process.env.OPENAI_KEY);
@@ -299,6 +300,21 @@ app.get("/api/progress/:prompt_id", async (req, res) => {
             writer.on("finish", resolve);
             writer.on("error", reject);
           });
+          // Strip metadata from the image using sharp
+          try {
+            await sharp(localPath)
+              .withMetadata({ exif: undefined })
+              .toFile(localPath + ".stripped");
+            fs.renameSync(localPath + ".stripped", localPath);
+            console.log(
+              `[DEBUG] Stripped metadata from image: ${localFilename}`
+            );
+          } catch (stripErr) {
+            console.error(
+              "[ERROR] Failed to strip metadata from image:",
+              stripErr
+            );
+          }
           // Insert metadata into DB
           await pool.query(
             `
