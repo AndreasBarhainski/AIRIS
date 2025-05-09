@@ -9,6 +9,7 @@ const axios = require("axios");
 const FormData = require("form-data");
 const { URL } = require("url");
 const sharp = require("sharp");
+const { PNG } = require("pngjs");
 
 require("dotenv").config({ path: path.resolve(__dirname, "../.env") });
 console.log("[DEBUG] process.env.OPENAI_KEY:", process.env.OPENAI_KEY);
@@ -189,8 +190,13 @@ app.post("/api/generate-image", async (req, res) => {
 
     // Send workflow to ComfyUI API (assume /prompt endpoint)
     console.log(
-      "[DEBUG] Workflow sent to ComfyUI:",
+      "[DEBUG] Workflow sent to ComfyUI (full object):",
       JSON.stringify(workflow, null, 2)
+    );
+    console.log(
+      "[DEBUG] Workflow sent to ComfyUI (truncated):",
+      JSON.stringify(workflow).slice(0, 500),
+      "..."
     );
     console.log("[DEBUG] Sending workflow to ComfyUI /prompt endpoint...");
     const promptUrl = new URL("/prompt", comfyApiUrl);
@@ -331,9 +337,16 @@ app.get("/api/progress/:prompt_id", async (req, res) => {
             await sharp(localPath)
               .withMetadata({ exif: undefined })
               .toFile(localPath + ".stripped");
+            // Remove all PNG text chunks if the file is a PNG
+            if (localPath.toLowerCase().endsWith(".png")) {
+              const data = fs.readFileSync(localPath + ".stripped");
+              const png = PNG.sync.read(data);
+              png.text = {};
+              fs.writeFileSync(localPath + ".stripped", PNG.sync.write(png));
+            }
             fs.renameSync(localPath + ".stripped", localPath);
             console.log(
-              `[DEBUG] Stripped metadata from image: ${localFilename}`
+              `[DEBUG] Stripped metadata and text chunks from image: ${localFilename}`
             );
           } catch (stripErr) {
             console.error(
