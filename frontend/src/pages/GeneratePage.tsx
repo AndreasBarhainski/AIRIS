@@ -48,6 +48,7 @@ const GeneratePage: React.FC = () => {
   } = useConfigurationsStore();
   const [workflowNodes, setWorkflowNodes] = useState<any[]>([]);
   const [workflowJson, setWorkflowJson] = useState<any>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Load all configurations on mount
   React.useEffect(() => {
@@ -237,6 +238,7 @@ const GeneratePage: React.FC = () => {
     setLoading(true);
     setProgress(0);
     setGeneratedImage(null);
+    setErrorMessage(null);
 
     // 1. Open WebSocket for real-time progress
     const wsUrl = getWsUrl(comfyApiUrl, clientId.current);
@@ -253,6 +255,13 @@ const GeneratePage: React.FC = () => {
     };
 
     try {
+      // Log the workflow and parameters sent to ComfyUI
+      console.log("[AIRIS] Sending to ComfyUI:", {
+        comfyApiUrl,
+        client_id: clientId.current,
+        workflow: workflowJson,
+        paramValues,
+      });
       // Send the raw workflow and paramValues to the backend
       const response = await fetch("/api/generate-image", {
         method: "POST",
@@ -265,7 +274,12 @@ const GeneratePage: React.FC = () => {
         }),
       });
       if (!response.ok) {
-        throw new Error("Failed to start image generation");
+        let errorText = "Failed to start image generation";
+        try {
+          const err = await response.json();
+          errorText = err.error || err.details || errorText;
+        } catch {}
+        throw new Error(errorText);
       }
       const { prompt_id } = await response.json();
       if (!prompt_id) throw new Error("No prompt_id returned");
@@ -312,8 +326,9 @@ const GeneratePage: React.FC = () => {
           polling = false;
         }
       }
-    } catch (error) {
-      alert("Error generating image");
+    } catch (error: any) {
+      console.error("[AIRIS] Error generating image:", error);
+      setErrorMessage(error.message || "Error generating image");
     } finally {
       setLoading(false);
       setProgress(0);
@@ -351,6 +366,13 @@ const GeneratePage: React.FC = () => {
           <div className="loading-state">
             <ProgressSpinner />
             <p>Generating image...</p>
+          </div>
+        ) : errorMessage ? (
+          <div
+            className="error-message"
+            style={{ color: "red", marginBottom: "1rem" }}
+          >
+            <strong>Error:</strong> {errorMessage}
           </div>
         ) : generatedImage ? (
           <div className="generated-image-container">
