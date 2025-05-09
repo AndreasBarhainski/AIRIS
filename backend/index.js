@@ -284,31 +284,10 @@ app.get("/api/ping", (req, res) => {
 
 // POST /api/configurations - create a new configuration
 app.post("/api/configurations", (req, res) => {
-  const {
-    workflowId,
-    name,
-    description,
-    parameterOverrides,
-    exposedParameters,
-    inputModes,
-    parameterOrder,
-  } = req.body;
-  if (!workflowId || !name) {
-    return res.status(400).json({ error: "workflowId and name are required" });
-  }
+  const configData = req.body;
   pool.query(
-    `INSERT INTO configurations (workflow_id, name, parameters) VALUES ($1, $2, $3) RETURNING id`,
-    [
-      workflowId,
-      name,
-      {
-        description,
-        parameterOverrides: JSON.stringify(parameterOverrides || {}),
-        exposedParameters: JSON.stringify(exposedParameters || []),
-        inputModes: JSON.stringify(inputModes || {}),
-        parameterOrder: JSON.stringify(parameterOrder || []),
-      },
-    ],
+    `INSERT INTO airis (data) VALUES ($1) RETURNING id`,
+    [configData],
     (err, result) => {
       if (err) {
         return res.status(500).json({ error: err.message });
@@ -322,17 +301,13 @@ app.post("/api/configurations", (req, res) => {
 app.get("/api/configurations/:workflowId", (req, res) => {
   const { workflowId } = req.params;
   pool.query(
-    `SELECT * FROM configurations WHERE workflow_id = $1`,
+    `SELECT id, data FROM airis WHERE (data->>'workflowId') = $1`,
     [workflowId],
     (err, result) => {
       if (err) {
         return res.status(500).json({ error: err.message });
       }
-      // Parse JSON fields
-      const configs = result.rows.map((row) => ({
-        ...row,
-        parameters: JSON.parse(row.parameters),
-      }));
+      const configs = result.rows.map((row) => ({ id: row.id, ...row.data }));
       res.json(configs);
     }
   );
@@ -341,34 +316,14 @@ app.get("/api/configurations/:workflowId", (req, res) => {
 // PUT /api/configurations/:id - update a configuration
 app.put("/api/configurations/:id", (req, res) => {
   const { id } = req.params;
-  const {
-    name,
-    description,
-    parameterOverrides,
-    exposedParameters,
-    inputModes,
-    parameterOrder,
-  } = req.body;
-  console.log("[PUT] Update config", { id, parameterOrder }); // DEBUG
+  const configData = req.body;
   pool.query(
-    `UPDATE configurations SET name = $1, description = $2, parameters = $3 WHERE id = $4 RETURNING *`,
-    [
-      name,
-      description || "",
-      JSON.stringify({
-        parameterOverrides: parameterOverrides || {},
-        exposedParameters: exposedParameters || [],
-        inputModes: inputModes || {},
-        parameterOrder: parameterOrder || [],
-      }),
-      id,
-    ],
+    `UPDATE airis SET data = $1 WHERE id = $2 RETURNING *`,
+    [configData, id],
     (err, result) => {
       if (err) {
-        console.error("[PUT] Update error:", err); // DEBUG
         return res.status(500).json({ error: err.message });
       }
-      console.log("[PUT] Update result:", result); // DEBUG
       res.json(result.rows[0]);
     }
   );
@@ -378,7 +333,7 @@ app.put("/api/configurations/:id", (req, res) => {
 app.delete("/api/configurations/:id", (req, res) => {
   const { id } = req.params;
   pool.query(
-    `DELETE FROM configurations WHERE id = $1 RETURNING *`,
+    `DELETE FROM airis WHERE id = $1 RETURNING *`,
     [id],
     (err, result) => {
       if (err) {
@@ -391,15 +346,11 @@ app.delete("/api/configurations/:id", (req, res) => {
 
 // GET /api/configurations - list all configurations
 app.get("/api/configurations", (req, res) => {
-  pool.query(`SELECT * FROM configurations`, [], (err, result) => {
+  pool.query(`SELECT id, data FROM airis`, [], (err, result) => {
     if (err) {
       return res.status(500).json({ error: err.message });
     }
-    // Parse JSON fields
-    const configs = result.rows.map((row) => ({
-      ...row,
-      parameters: JSON.parse(row.parameters),
-    }));
+    const configs = result.rows.map((row) => ({ id: row.id, ...row.data }));
     res.json(configs);
   });
 });
@@ -755,26 +706,14 @@ async function startServer() {
       );
     `);
 
-    // Create configurations table
+    // Create airis table for configurations
     await pool.query(`
-      CREATE TABLE IF NOT EXISTS configurations (
+      CREATE TABLE IF NOT EXISTS airis (
         id SERIAL PRIMARY KEY,
-        name TEXT,
-        workflow_id TEXT,
-        parameters JSONB,
+        data JSONB,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
-
-    // Ensure inputmodes column exists (use all lowercase for Postgres)
-    const result = await pool.query(`
-      SELECT column_name FROM information_schema.columns WHERE table_name = 'configurations' AND column_name = 'inputmodes';
-    `);
-    if (result.rows.length === 0) {
-      await pool.query(`
-        ALTER TABLE configurations ADD COLUMN inputmodes JSONB;
-      `);
-    }
 
     // Only listen after database setup is complete
     app.listen(PORT, () => {
