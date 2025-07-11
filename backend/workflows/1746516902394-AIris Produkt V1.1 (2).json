@@ -808,7 +808,7 @@
   },
   "255": {
     "inputs": {
-      "Text": "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"
+      "Text": "YOUR_OPENAI_API_KEY_HERE"
     },
     "class_type": "DF_Text",
     "_meta": {
